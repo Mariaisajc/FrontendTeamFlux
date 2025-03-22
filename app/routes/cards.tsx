@@ -58,6 +58,7 @@ export default function Cards() {
     ["Menos de 30 años", "30-50 años", "Más de 50 años"],
   ];
 
+  // Updated image paths to ensure they're pointing to the right location
   const imgUrl = [
     ["/img/imagen1.jpg", "/img/imagen2.jpg", "/img/imagen3.jpg"],
     ["/img/Tulum.jpg", "/img/Templado.jpg", "/img/Frio.jpg"],
@@ -124,7 +125,19 @@ export default function Cards() {
   // Update indicator states when index changes
   useEffect(() => {
     verificarSeleccion();
-  }, [indice]);
+    
+    // Update current question data when index changes
+    setPregunta(preguntaA[indice]);
+    setOpcion1(opcionesA[indice][0]);
+    setOpcion2(opcionesA[indice][1]);
+    setOpcion3(opcionesA[indice][2]);
+    setImg1(imgUrl[indice][0]);
+    setImg2(imgUrl[indice][1]);
+    setImg3(imgUrl[indice][2]);
+    setDato1(dato[indice][0]);
+    setDato2(dato[indice][1]);
+    setDato3(dato[indice][2]);
+  }, [indice, preguntaA, opcionesA, imgUrl, dato]);
 
   useEffect(() => {
     // Set background image when an option is selected
@@ -191,17 +204,6 @@ export default function Cards() {
     setIndice(newIndice);
     updateIndice(newIndice);
 
-    setPregunta(preguntaA[newIndice]);
-    setOpcion1(opcionesA[newIndice][0]);
-    setOpcion2(opcionesA[newIndice][1]);
-    setOpcion3(opcionesA[newIndice][2]);
-    setImg1(imgUrl[newIndice][0]);
-    setImg2(imgUrl[newIndice][1]);
-    setImg3(imgUrl[newIndice][2]);
-    setDato1(dato[newIndice][0]);
-    setDato2(dato[newIndice][1]);
-    setDato3(dato[newIndice][2]);
-
     setOpcSelect("");
     setDisSig(true);
     setDisAtras(false);
@@ -225,17 +227,6 @@ export default function Cards() {
     const newIndice = indice - 1;
     setIndice(newIndice);
     updateIndice(newIndice);
-
-    setPregunta(preguntaA[newIndice]);
-    setOpcion1(opcionesA[newIndice][0]);
-    setOpcion2(opcionesA[newIndice][1]);
-    setOpcion3(opcionesA[newIndice][2]);
-    setImg1(imgUrl[newIndice][0]);
-    setImg2(imgUrl[newIndice][1]);
-    setImg3(imgUrl[newIndice][2]);
-    setDato1(dato[newIndice][0]);
-    setDato2(dato[newIndice][1]);
-    setDato3(dato[newIndice][2]);
 
     setOpcSelect("");
     setHidSig(false);
@@ -293,67 +284,85 @@ export default function Cards() {
         </h1>
       </div>
 
-      {/* Navigation indicators - Moved to top for better visibility */}
-      <div className="mb-8">
-        <div className="flex flex-wrap justify-center items-center gap-4">
+      {/* Navigation indicators - Larger and more visible */}
+      <div className="mb-12">
+        <div className="flex flex-col gap-4 items-center">
           <button
             onClick={regresarPerfil}
-            className="bg-accent-blue text-white px-4 py-2 rounded-md cursor-pointer hover:bg-light-blue hover:text-deep-blue transition-colors shadow-md"
+            className="bg-accent-blue text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-light-blue hover:text-deep-blue transition-colors shadow-lg mb-4 text-lg font-semibold w-40"
           >
             <i className="fa-solid fa-user mr-2"></i>Perfil
           </button>
           
-          <div className="flex space-x-2">
-            <div className={`${t0} w-12 h-12 flex items-center justify-center rounded-full text-deep-blue font-bold text-lg border-2 border-accent-blue shadow-md`}>1</div>
-            <div className={`${t1} w-12 h-12 flex items-center justify-center rounded-full text-deep-blue font-bold text-lg border-2 border-accent-blue shadow-md`}>2</div>
-            <div className={`${t2} w-12 h-12 flex items-center justify-center rounded-full text-deep-blue font-bold text-lg border-2 border-accent-blue shadow-md`}>3</div>
-            <div className={`${t3} w-12 h-12 flex items-center justify-center rounded-full text-deep-blue font-bold text-lg border-2 border-accent-blue shadow-md`}>4</div>
-            <div className={`${t4} w-12 h-12 flex items-center justify-center rounded-full text-deep-blue font-bold text-lg border-2 border-accent-blue shadow-md`}>5</div>
-            <div className={`${t5} w-12 h-12 flex items-center justify-center rounded-full text-deep-blue font-bold text-lg border-2 border-accent-blue shadow-md`}>6</div>
+          <div className="flex flex-wrap justify-center gap-3 w-full max-w-3xl mx-auto px-2">
+            <div className={`${t0} w-16 h-16 flex items-center justify-center rounded-full text-deep-blue font-bold text-xl border-4 ${t0 === "contadorOn" ? "border-accent-blue shadow-xl scale-110" : "border-light-blue opacity-70"} transition-all duration-300`}>1</div>
+            <div className={`${t1} w-16 h-16 flex items-center justify-center rounded-full text-deep-blue font-bold text-xl border-4 ${t1 === "contadorOn" ? "border-accent-blue shadow-xl scale-110" : "border-light-blue opacity-70"} transition-all duration-300`}>2</div>
+            <div className={`${t2} w-16 h-16 flex items-center justify-center rounded-full text-deep-blue font-bold text-xl border-4 ${t2 === "contadorOn" ? "border-accent-blue shadow-xl scale-110" : "border-light-blue opacity-70"} transition-all duration-300`}>3</div>
+            <div className={`${t3} w-16 h-16 flex items-center justify-center rounded-full text-deep-blue font-bold text-xl border-4 ${t3 === "contadorOn" ? "border-accent-blue shadow-xl scale-110" : "border-light-blue opacity-70"} transition-all duration-300`}>4</div>
+            <div className={`${t4} w-16 h-16 flex items-center justify-center rounded-full text-deep-blue font-bold text-xl border-4 ${t4 === "contadorOn" ? "border-accent-blue shadow-xl scale-110" : "border-light-blue opacity-70"} transition-all duration-300`}>5</div>
+            <div className={`${t5} w-16 h-16 flex items-center justify-center rounded-full text-deep-blue font-bold text-xl border-4 ${t5 === "contadorOn" ? "border-accent-blue shadow-xl scale-110" : "border-light-blue opacity-70"} transition-all duration-300`}>6</div>
           </div>
         </div>
       </div>
 
-      {/* Cards container */}
+      {/* Cards container - Fixed structure with proper styling */}
       <div className="flex flex-wrap justify-center gap-8 mb-8">
         {/* Card 1 */}
-        <label htmlFor="opc1">
-          <div className="w-[300px] h-[380px] relative perspective-[1000px] cursor-pointer shadow-lg transition-transform transform hover:scale-105">
-            <div className="absolute w-full h-full transition-all duration-500 transform-style-3d backface-hidden transform rotate-y-0 front rounded-lg overflow-hidden border-2 border-light-blue">
-              <img src={img1} alt="imagen_playa" className="w-full h-[85%] object-cover" />
-              <h3 className="h-[15%] bg-black bg-opacity-60 text-white text-center py-2 text-lg">{opcion1}</h3>
+        <label htmlFor="opc1" className="card-container">
+          <div className="relative w-[300px] h-[380px] cursor-pointer shadow-lg transform transition-transform hover:scale-105">
+            <div className="w-full h-full rounded-lg overflow-hidden border-2 border-light-blue bg-white">
+              <div className="w-full h-[85%] relative">
+                <img src={img1} alt="imagen_playa" className="w-full h-full object-cover" />
+              </div>
+              <div className="h-[15%] bg-black bg-opacity-60 text-white flex items-center justify-center">
+                <h3 className="text-lg font-medium">{opcion1}</h3>
+              </div>
             </div>
-            <div className="absolute w-full h-full transition-all duration-500 transform-style-3d backface-hidden transform rotate-y-180 back bg-light-blue text-accent-blue p-4 text-center flex flex-col justify-center rounded-lg border-2 border-accent-blue">
+            
+            {/* Info on hover - simplified approach */}
+            <div className="absolute inset-0 w-full h-full bg-light-blue text-accent-blue p-4 flex flex-col justify-center items-center opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg border-2 border-accent-blue">
               <h3 className="text-xl font-bold mb-4">¿Sabias qué...</h3>
-              <p className="text-base">{dato1}</p>
+              <p className="text-base text-center">{dato1}</p>
             </div>
           </div>
         </label>
 
         {/* Card 2 */}
-        <label htmlFor="opc2">
-          <div className="w-[300px] h-[380px] relative perspective-[1000px] cursor-pointer shadow-lg transition-transform transform hover:scale-105">
-            <div className="absolute w-full h-full transition-all duration-500 transform-style-3d backface-hidden transform rotate-y-0 front rounded-lg overflow-hidden border-2 border-light-blue">
-              <img src={img2} alt="imagen_montaña" className="w-full h-[85%] object-cover" />
-              <h3 className="h-[15%] bg-black bg-opacity-60 text-white text-center py-2 text-lg">{opcion2}</h3>
+        <label htmlFor="opc2" className="card-container">
+          <div className="relative w-[300px] h-[380px] cursor-pointer shadow-lg transform transition-transform hover:scale-105">
+            <div className="w-full h-full rounded-lg overflow-hidden border-2 border-light-blue bg-white">
+              <div className="w-full h-[85%] relative">
+                <img src={img2} alt="imagen_montaña" className="w-full h-full object-cover" />
+              </div>
+              <div className="h-[15%] bg-black bg-opacity-60 text-white flex items-center justify-center">
+                <h3 className="text-lg font-medium">{opcion2}</h3>
+              </div>
             </div>
-            <div className="absolute w-full h-full transition-all duration-500 transform-style-3d backface-hidden transform rotate-y-180 back bg-light-blue text-accent-blue p-4 text-center flex flex-col justify-center rounded-lg border-2 border-accent-blue">
+            
+            {/* Info on hover - simplified approach */}
+            <div className="absolute inset-0 w-full h-full bg-light-blue text-accent-blue p-4 flex flex-col justify-center items-center opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg border-2 border-accent-blue">
               <h3 className="text-xl font-bold mb-4">¿Sabias qué...</h3>
-              <p className="text-base">{dato2}</p>
+              <p className="text-base text-center">{dato2}</p>
             </div>
           </div>
         </label>
 
         {/* Card 3 */}
-        <label htmlFor="opc3">
-          <div className="w-[300px] h-[380px] relative perspective-[1000px] cursor-pointer shadow-lg transition-transform transform hover:scale-105">
-            <div className="absolute w-full h-full transition-all duration-500 transform-style-3d backface-hidden transform rotate-y-0 front rounded-lg overflow-hidden border-2 border-light-blue">
-              <img src={img3} alt="imagen_ciudad" className="w-full h-[85%] object-cover" />
-              <h3 className="h-[15%] bg-black bg-opacity-60 text-white text-center py-2 text-lg">{opcion3}</h3>
+        <label htmlFor="opc3" className="card-container">
+          <div className="relative w-[300px] h-[380px] cursor-pointer shadow-lg transform transition-transform hover:scale-105">
+            <div className="w-full h-full rounded-lg overflow-hidden border-2 border-light-blue bg-white">
+              <div className="w-full h-[85%] relative">
+                <img src={img3} alt="imagen_ciudad" className="w-full h-full object-cover" />
+              </div>
+              <div className="h-[15%] bg-black bg-opacity-60 text-white flex items-center justify-center">
+                <h3 className="text-lg font-medium">{opcion3}</h3>
+              </div>
             </div>
-            <div className="absolute w-full h-full transition-all duration-500 transform-style-3d backface-hidden transform rotate-y-180 back bg-light-blue text-accent-blue p-4 text-center flex flex-col justify-center rounded-lg border-2 border-accent-blue">
+            
+            {/* Info on hover - simplified approach */}
+            <div className="absolute inset-0 w-full h-full bg-light-blue text-accent-blue p-4 flex flex-col justify-center items-center opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg border-2 border-accent-blue">
               <h3 className="text-xl font-bold mb-4">¿Sabias qué...</h3>
-              <p className="text-base">{dato3}</p>
+              <p className="text-base text-center">{dato3}</p>
             </div>
           </div>
         </label>
@@ -402,16 +411,16 @@ export default function Cards() {
         </div>
       </form>
 
-      {/* Action buttons */}
-      <div className="fixed bottom-8 left-0 right-0">
-        <div className="flex justify-center gap-6 px-4">
+      {/* Action buttons - Fixed at bottom with better styling */}
+      <div className="fixed bottom-0 left-0 right-0 bg-deep-blue bg-opacity-95 py-6 shadow-[0_-4px_20px_rgba(0,0,0,0.3)] z-50 backdrop-blur-sm border-t-2 border-accent-blue">
+        <div className="flex justify-center items-center gap-8 px-4 max-w-4xl mx-auto">
           <button
             type="button"
             onClick={atras}
             disabled={disAtras}
-            className="bg-light-blue text-deep-blue px-8 py-3 rounded-lg text-lg font-semibold shadow-lg hover:bg-accent-blue hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-light-blue text-deep-blue px-8 py-4 rounded-xl text-xl font-bold shadow-xl hover:bg-accent-blue hover:text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed min-w-32 transform hover:scale-105 active:scale-95"
           >
-            <i className="fa-solid fa-arrow-left mr-2"></i>Atrás
+            <i className="fa-solid fa-arrow-left mr-3"></i>Atrás
           </button>
           
           {!hidSig && (
@@ -419,22 +428,25 @@ export default function Cards() {
               type="button"
               onClick={siguiente}
               disabled={disSig}
-              className="bg-light-blue text-deep-blue px-8 py-3 rounded-lg text-lg font-semibold shadow-lg hover:bg-accent-blue hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-light-blue text-deep-blue px-8 py-4 rounded-xl text-xl font-bold shadow-xl hover:bg-accent-blue hover:text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed min-w-32 transform hover:scale-105 active:scale-95"
             >
-              Siguiente<i className="fa-solid fa-arrow-right ml-2"></i>
+              Siguiente<i className="fa-solid fa-arrow-right ml-3"></i>
             </button>
           )}
           
           {!calcular && (
             <Link
               to="/results"
-              className="bg-accent-blue text-white px-8 py-3 rounded-lg text-lg font-semibold shadow-lg hover:bg-light-blue hover:text-deep-blue transition-colors inline-flex items-center"
+              className="bg-accent-blue text-white px-8 py-4 rounded-xl text-xl font-bold shadow-xl hover:bg-light-blue hover:text-deep-blue transition-all duration-300 inline-flex items-center min-w-36 justify-center transform hover:scale-105 active:scale-95 animate-pulse"
             >
-              <i className="fa-solid fa-calculator mr-2"></i>Calcular Destino
+              <i className="fa-solid fa-calculator mr-3"></i>Calcular Destino
             </Link>
           )}
         </div>
       </div>
+
+      {/* Add extra padding at the bottom to compensate for fixed buttons */}
+      <div className="h-28"></div>
     </main>
   );
 }
