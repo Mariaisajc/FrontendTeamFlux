@@ -14,7 +14,7 @@ export default function Index() {
       <div className="flex flex-col md:flex-row justify-center items-center m-[5px] p-[5px] w-full bg-[#000835]">
         <div 
           className="flex flex-col justify-end items-center m-[5px] p-[5px] w-full h-[35vh] md:h-[50vh] bg-light-blue bg-cover bg-center bg-no-repeat hover:opacity-90 cursor-pointer"
-          style={{ backgroundImage: "url(/img/PlayaDelCarmen.jpg)" }} // Update with actual image path
+          style={{ backgroundImage: "url(/img/tiera.png)" }}
         >
           {/* Link wrapper for navigation */}
           <Link to="/profile" className="w-full h-full"></Link>

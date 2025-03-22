@@ -45,16 +45,16 @@ export default function Destino() {
       case "Playa del Carmen":
         setAmerica(destinoService.destinoA);
         setEuropa(destinoService.destinoE);
-        setSrcA("/logo-light.png"); // Replace with actual image path
-        setSrcE("/logo-dark.png"); // Replace with actual image path
+        setSrcA("/img/PlayaDelCarmen.jpg");
+        setSrcE("/img/Santorini.jpg");
         setDatosA(["México", "Español", "Chichén-Itzá", "Salbutes"]);
         setDatosE(["Grecia", "Griego", "Oia", "Hummus de Fava"]);
         break;
       case "Tulum":
         setAmerica(destinoService.destinoA);
         setEuropa(destinoService.destinoE);
-        setSrcA("/logo-light.png");
-        setSrcE("/logo-dark.png");
+        setSrcA("/img/Tulum.jpg");
+        setSrcE("/img/ibiza.jpg");
         setDatosA([
           "México",
           "Español",
@@ -68,18 +68,61 @@ export default function Destino() {
           "Sofrit pagès",
         ]);
         break;
-      // Add other cases here following the same pattern
+      case "Honolulu":
+        setAmerica(destinoService.destinoA);
+        setEuropa(destinoService.destinoE);
+        setSrcA("/img/Honolulu.jpg");
+        setSrcE("/img/Malta.jpg");
+        setDatosA(["Hawái", "Ingles/Hawaiano", "Playa Hapuna", "Saimin"]);
+        setDatosE(["Malta", "Ingles/Maltés", "La Valeta", "Aljotta"]);
+        break;
+      case "Cartagena":
+        setAmerica(destinoService.destinoA);
+        setEuropa(destinoService.destinoE);
+        setSrcA("/img/Cartagena.jpg");
+        setSrcE("/img/Barcelona.jpg");
+        setDatosA([
+          "Colombia",
+          "Español",
+          "Castillo San Felipe",
+          "Cazuela de Mariscos",
+        ]);
+        setDatosE([
+          "España",
+          "Castellano/Catalán",
+          "Sagrada Familia",
+          "Pa amb tomàquet",
+        ]);
+        break;
       case "Bora Bora":
         setControl(false);
         setAmerica(destinoService.destinoA);
         setEuropa(destinoService.destinoE);
-        setSrcA("/logo-light.png");
-        setSrcE("/logo-dark.png");
+        setSrcA("/img/BoraBora.jpg");
+        setSrcE("/img/dubai.jpg");
         setDatosA(["Polinesia Francesa", "Francés", "Otemanu", "Roulottes"]);
         setDatosE(["Emiratos Árabes", "Árabe", "Burj Al Arab", "El Mezze"]);
         break;
+      case "Río de Janeiro":
+        setAmerica(destinoService.destinoA);
+        setEuropa(destinoService.destinoE);
+        setSrcA("/img/RioDeJaneiro.jpg");
+        setSrcE("/img/lisboa.jpg");
+        setDatosA(["Brasil", "Portugués", "Cristo Redentor", "Feijoada"]);
+        setDatosE(["Portugal", "Portugués", "Tranvía 28", "Pasteles de Belem"]);
+        break;
+      case "Nueva York":
+        setAmerica(destinoService.destinoA);
+        setEuropa(destinoService.destinoE);
+        setSrcA("/img/NuevaYork.jpg");
+        setSrcE("/img/paris.jpg");
+        setDatosA(["EE.UU", "Inglés", "Central Park", "Pizza"]);
+        setDatosE(["Francia", "Frances", "Torre Eiffel", "Foie gra"]);
+        break;
       default:
         // Default case if needed
+        setSrcA("/img/tiera.png"); // Default image
+        setSrcE("/img/tiera.png"); // Default image
         break;
     }
 
@@ -101,7 +144,7 @@ export default function Destino() {
       )}
 
       <div className="flex justify-evenly h-3/4 md:flex-row flex-col md:gap-0 gap-7">
-        <section className="flex flex-col items-center md:w-2/5 w-3/4 justify-between bg-[#c5d5f9] shadow-[18px_14px_0px_2px_#3a8bff] md:h-auto h-1/2 self-center">
+        <section className="flex flex-col items-center md:w-2/5 w-3/4 justify-between bg-[#c5d5f9] shadow-[18px_14px_0px_2px_#3a8bff] md:h-auto h-1/2 self-center group">
           <div className="h-[10%]">
             <h2 className="cursor-pointer" onClick={actualizarDestino}>
               Aventura en América
@@ -111,7 +154,7 @@ export default function Destino() {
           <div className="h-[10%]">
             <input
               value={america}
-              className="text-center border-none bg-[#c5d5f9] text-xl focus-in-expand"
+              className="text-center border-none bg-[#c5d5f9] text-xl font-bold focus-in-expand"
               type="text"
               readOnly
               id="destinoAmerica"
@@ -125,7 +168,7 @@ export default function Destino() {
               id="imagenAmerica"
               className="max-w-full max-h-full object-cover w-[900px] h-[900px]"
             />
-            <div className="absolute bottom-full left-0 right-0 bg-[#000835] overflow-hidden w-full h-0 transition-all duration-500 ease-in-out group-hover:bottom-0 group-hover:h-full">
+            <div className="absolute bottom-full left-0 right-0 bg-[#000835] overflow-hidden w-full h-0 transition-all duration-500 group-hover:bottom-0 group-hover:h-full">
               <div className="text-white text-sm font-thin absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-left grid grid-cols-[40%_60%] gap-[5px] md:left-1/2 left-[60%]">
                 <p>Pais:</p>
                 <input
@@ -160,9 +203,9 @@ export default function Destino() {
           </div>
 
           <div className="relative group">
-            <Link to="/planes">
+            <Link to="/plans">
               <img
-                src="/logo-light.png"
+                src="/img/paquete.png"
                 alt="Paquete de viajes"
                 className="w-[30px]"
               />
@@ -173,7 +216,7 @@ export default function Destino() {
           </div>
         </section>
 
-        <section className="flex flex-col items-center md:w-2/5 w-3/4 justify-between bg-[#c5d5f9] shadow-[18px_14px_0px_2px_#3a8bff] md:h-auto h-1/2 self-center">
+        <section className="flex flex-col items-center md:w-2/5 w-3/4 justify-between bg-[#c5d5f9] shadow-[18px_14px_0px_2px_#3a8bff] md:h-auto h-1/2 self-center group">
           <div className="h-[10%]">
             <h2 className="cursor-pointer">Aventura en Europa</h2>
           </div>
@@ -181,7 +224,7 @@ export default function Destino() {
           <div className="h-[10%]">
             <input
               value={europa}
-              className="text-center border-none bg-[#c5d5f9] text-xl focus-in-expand"
+              className="text-center border-none bg-[#c5d5f9] text-xl font-bold focus-in-expand"
               type="text"
               readOnly
               id="destinoEuropa"
@@ -195,7 +238,7 @@ export default function Destino() {
               id="imagenEuropa"
               className="max-w-full max-h-full object-cover w-[900px] h-[900px]"
             />
-            <div className="absolute bottom-full left-0 right-0 bg-[#000835] overflow-hidden w-full h-0 transition-all duration-500 ease-in-out group-hover:bottom-0 group-hover:h-full">
+            <div className="absolute bottom-full left-0 right-0 bg-[#000835] overflow-hidden w-full h-0 transition-all duration-500 group-hover:bottom-0 group-hover:h-full">
               <div className="text-white text-sm font-thin absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-left grid grid-cols-[40%_60%] gap-[5px] md:left-1/2 left-[60%]">
                 <p>Pais:</p>
                 <input
@@ -230,9 +273,9 @@ export default function Destino() {
           </div>
 
           <div className="relative group">
-            <Link to="/planes">
+            <Link to="/plans">
               <img
-                src="/logo-light.png"
+                src="/img/paquete.png"
                 alt="Paquete de viajes"
                 className="w-[30px]"
               />

@@ -1,0 +1,114 @@
+@keyframes focus-in-expand {
+    0% {
+      letter-spacing: -0.5em;
+      filter: blur(12px);
+      opacity: 0;
+    }
+    100% {
+      filter: blur(0px);
+      opacity: 1;
+    }
+  }
+  
+  .focus-in-expand {
+    animation: focus-in-expand 3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  }
+
+@keyframes fade {
+    from {opacity: .4}
+    to {opacity: 1}
+  }
+  
+  .fade {
+    animation-name: fade;
+    animation-duration: 0.5s;
+  }
+  
+  .active {
+    background-color: #0d123d;
+    border: 2px solid white;
+  }
+
+  @keyframes scale-in-ver-center {
+    0% {
+      transform: scaleY(0);
+      opacity: 1;
+    }
+    100% {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+  }
+  
+  .scale-in-ver-center {
+    animation: scale-in-ver-center 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  
+  .transform-perspective-600 {
+    transform: perspective(600px);
+  }
+  
+  .rotate-y-0 {
+    transform: perspective(600px) rotateY(0deg);
+  }
+  
+  .rotate-y-180 {
+    transform: perspective(600px) rotateY(180deg);
+  }
+  
+  .rotate-y-360 {
+    transform: perspective(600px) rotateY(360deg);
+  }
+  
+  /* Card flip hover effect */
+  label:hover .rotate-y-0 {
+    transform: perspective(600px) rotateY(180deg);
+  }
+  
+  label:hover .rotate-y-180 {
+    transform: perspective(600px) rotateY(360deg);
+  }
+
+  @keyframes slide-in-bottom {
+    0% {
+      transform: translateY(1000px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .slide-in-bottom {
+    animation: slide-in-bottom 2s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  }
+  
+  @keyframes vibrate-1 {
+    0% {
+      transform: translate(0);
+    }
+    20% {
+      transform: translate(-2px, 2px);
+    }
+    40% {
+      transform: translate(-2px, -2px);
+    }
+    60% {
+      transform: translate(2px, 2px);
+    }
+    80% {
+      transform: translate(2px, -2px);
+    }
+    100% {
+      transform: translate(0);
+    }
+  }
+  
+  .vibrate-1:hover {
+    animation: vibrate-1 0.3s linear infinite both;
+  }  
