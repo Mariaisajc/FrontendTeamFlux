@@ -3,35 +3,47 @@ import { useNavigate } from "@remix-run/react";
 import { LinksFunction } from "@remix-run/node";
 import { useDestino } from "~/services/destinationService";
 
-// Add fade animation that Tailwind doesn't provide
 export const links: LinksFunction = () => [
   {
     rel: "stylesheet",
     href: "/styles/animations.css",
   },
+  {
+    rel: "stylesheet",
+    href: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css",
+  },
 ];
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { state, updateUserInfo, updateAvatar } = useDestino();
+  const { updateUserInfo, updateAvatar } = useDestino();
   
   const [slideIndex, setSlideIndex] = useState(1);
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
   const [estadoCorreo, setEstadoCorreo] = useState("");
   const [controlBoton, setControlBoton] = useState(true);
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
+  const [isNameFocused, setIsNameFocused] = useState(false);
 
   const slidesRef = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<HTMLDivElement>(null);
+  
+  const avatars = [
+    "/img/img-avatar/ava11.png",
+    "/img/img-avatar/ava12.png",
+    "/img/img-avatar/ava13.png",
+    "/img/img-avatar/ava14.png"
+  ];
 
   useEffect(() => {
-    showSlides(slideIndex);
+    showSlides();
   }, [slideIndex]);
 
   const plusSlides = (n: number) => {
     let newIndex = slideIndex + n;
-    if (newIndex > 4) newIndex = 1;
-    if (newIndex < 1) newIndex = 4;
+    if (newIndex > avatars.length) newIndex = 1;
+    if (newIndex < 1) newIndex = avatars.length;
     setSlideIndex(newIndex);
   };
 
@@ -39,7 +51,7 @@ export default function Profile() {
     setSlideIndex(n);
   };
 
-  const showSlides = (n: number) => {
+  const showSlides = () => {
     if (!slidesRef.current || !dotsRef.current) return;
 
     const slides = slidesRef.current.children;
@@ -66,6 +78,11 @@ export default function Profile() {
 
     if (nomUsuario === "") {
       setEstadoCorreo("Escribe su nombre");
+    } else {
+      // If we have both a name and valid email, enable the button
+      if (correo !== "" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+        setControlBoton(false);
+      }
     }
   };
 
@@ -75,15 +92,16 @@ export default function Profile() {
 
     if (correoUsuario === "") {
       setEstadoCorreo("Escribe un correo electrónico");
+      setControlBoton(true);
     } else {
-      const regEmail =
-        /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/;
+      const regEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       if (regEmail.test(correoUsuario)) {
         setEstadoCorreo("");
-        setControlBoton(false);
+        // Only enable button if we also have a name
+        setControlBoton(nombre === "");
       } else {
-        setEstadoCorreo("Escriba un Correo Valido");
+        setEstadoCorreo("Escribe un correo válido");
         setControlBoton(true);
       }
     }
@@ -94,173 +112,146 @@ export default function Profile() {
     updateUserInfo(nombre, correo);
 
     // Set avatar based on slide index
-    switch (slideIndex) {
-      case 1:
-        updateAvatar("/img/img-avatar/ava11.png");
-        break;
-      case 2:
-        updateAvatar("/img/img-avatar/ava12.png");
-        break;
-      case 3:
-        updateAvatar("/img/img-avatar/ava13.png");
-        break;
-      case 4:
-        updateAvatar("/img/img-avatar/ava14.png");
-        break;
-    }
+    updateAvatar(avatars[slideIndex - 1]);
 
     // Navigate to cards page
     navigate("/cards");
   };
 
-  // CSS Grid style classes
-  const gridStyles = `
-    .grid-areas-avatar { grid-area: gridAvatar; }
-    .grid-areas-select { grid-area: gridSelect; }
-    .grid-areas-data { grid-area: gridData; }
-    
-    .grid-template-desktop {
-      display: grid;
-      grid-template-columns: 400px 400px;
-      grid-template-rows: 400px 48px;
-      grid-template-areas:
-        'gridAvatar gridData'
-        'gridSelect gridData';
-    }
-    
-    @media (max-width: 801px) {
-      .grid-template-desktop {
-        grid-template-columns: 400px;
-        grid-template-rows: 400px 48px auto;
-        grid-template-areas:
-          'gridAvatar'
-          'gridSelect'
-          'gridData';
-      }
-    }
-  `;
-
   return (
-    <div className="h-[90vh] w-full select-none font-sans m-0 p-0 box-border">
-      {/* Add the CSS Grid styles */}
-      <style>{gridStyles}</style>
-
-      <div className="block h-[90vh] w-full bg-deep-blue align-middle">
+    <div className="min-h-screen w-full bg-gradient-to-b from-deep-blue to-deep-blue/90 py-8 px-4 md:px-8 font-sans flex items-center justify-center">
+      <div className="w-full max-w-4xl">
+        {/* Main container */}
+        <div className="bg-white/5 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+          <h2 className="bg-gradient-to-r from-accent-blue to-accent-blue/70 text-white text-center text-2xl py-4 font-bold">
+            Crea tu perfil de viajero
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+            {/* Avatar section - Left side */}
+            <div className="p-6 flex flex-col">
+              <h3 className="text-white text-xl font-medium text-center mb-6">
+                Selecciona un avatar
+              </h3>
+              
+              {/* Avatar carousel container */}
+              <div className="relative flex-grow">
+                <div 
+                  ref={slidesRef}
+                  className="h-full flex items-center justify-center"
+                >
+                  {avatars.map((avatar, index) => (
+                    <div key={index} className="fade w-full h-full text-center hidden">
+                      <div className="avatar-container bg-white/10 backdrop-blur-sm p-4 rounded-full mx-auto aspect-square w-3/4 max-w-xs overflow-hidden">
+                        <img
+                          src={avatar}
+                          alt={`Avatar option ${index + 1}`}
+                          className="w-full h-full object-cover rounded-full transition-transform hover:scale-105 duration-300"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Prev/Next buttons with improved styling */}
+                <button 
+                  className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-accent-blue/50 hover:bg-accent-blue text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
+                  onClick={() => plusSlides(-1)}
+                  aria-label="Previous avatar"
+                >
+                  <i className="fas fa-chevron-left"></i>
+                </button>
+                
+                <button 
+                  className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-accent-blue/50 hover:bg-accent-blue text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
+                  onClick={() => plusSlides(1)}
+                  aria-label="Next avatar"
+                >
+                  <i className="fas fa-chevron-right"></i>
+                </button>
+              </div>
+              
+              {/* Dots navigation */}
+              <div 
+                ref={dotsRef}
+                className="flex justify-center gap-3 mt-6"
+              >
+                {avatars.map((_, index) => (
+                  <button 
+                    key={index}
+                    onClick={() => currentSlide(index + 1)} 
+                    className="w-4 h-4 rounded-full bg-white/50 hover:bg-white/80 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-blue"
+                    aria-label={`Select avatar ${index + 1}`}
+                  ></button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Form section - Right side */}
+            <div className="p-6 flex flex-col bg-deep-blue/30">
+              <h3 className="text-white text-xl font-medium mb-6 text-center">
+                Tus datos
+              </h3>
+              
+              {/* Form with modern styling */}
+              <div className="flex flex-col gap-6 flex-grow">
+                <div className="relative">
+                  <input
+                    className={`w-full bg-white/10 border ${!nombre && isNameFocused ? 'border-red-400' : 'border-accent-blue/50'} rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-accent-blue transition-all duration-300`}
+                    type="text"
+                    placeholder="Nombre"
+                    value={nombre}
+                    onChange={verificarNomb}
+                    onFocus={() => setIsNameFocused(true)}
+                    onBlur={() => setIsNameFocused(false)}
+                  />
+                  {!nombre && isNameFocused && (
+                    <p className="text-red-400 mt-1 text-sm">Por favor, escribe tu nombre</p>
+                  )}
+                </div>
+                
+                <div className="relative">
+                  <input
+                    className={`w-full bg-white/10 border ${estadoCorreo && isEmailFocused ? 'border-red-400' : 'border-accent-blue/50'} rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-accent-blue transition-all duration-300`}
+                    type="email"
+                    placeholder="Correo electrónico"
+                    value={correo}
+                    onChange={verificarCorreo}
+                    onFocus={() => setIsEmailFocused(true)}
+                    onBlur={() => setIsEmailFocused(false)}
+                  />
+                  {estadoCorreo && isEmailFocused && (
+                    <p className="text-red-400 mt-1 text-sm">{estadoCorreo}</p>
+                  )}
+                </div>
+                
+                <div className="flex-grow flex items-end mt-4">
+                  <button
+                    className={`w-full bg-accent-blue text-white py-4 px-6 rounded-lg font-bold text-lg shadow-lg transition-all duration-300 
+                      ${controlBoton ? 'opacity-60 cursor-not-allowed' : 'hover:bg-light-blue hover:text-deep-blue transform hover:scale-[1.02]'}`}
+                    type="button"
+                    onClick={datosUsuario}
+                    disabled={controlBoton}
+                  >
+                    <i className="fas fa-paper-plane mr-2"></i>
+                    ¡Próxima aventura!
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Footer section */}
+          <div className="bg-deep-blue/50 p-4 text-center text-light-blue text-sm">
+            <p>Comienza tu viaje personalizado seleccionando un avatar y completando tus datos</p>
+          </div>
+        </div>
         
-        {/* Main container using the original grid structure */}
-        <div className="grid-template-desktop bg-deep-blue h-fit w-fit mx-auto">
-          
-          {/* Avatar section */}
-          <div className="grid-areas-avatar inline-block h-full w-full">
-            <div 
-              ref={slidesRef}
-              className="h-full w-full object-contain p-4">
-              <div className="fade">
-                <img
-                  src="/img/img-avatar/ava11.png"
-                  className="h-full w-full object-contain rounded-full overflow-hidden"
-                  alt="Avatar 1"
-                />
-              </div>
-              <div className="fade hidden">
-                <img
-                  src="/img/img-avatar/ava12.png"
-                  className="h-full w-full object-contain rounded-full overflow-hidden"
-                  alt="Avatar 2"
-                />
-              </div>
-              <div className="fade hidden">
-                <img
-                  src="/img/img-avatar/ava13.png"
-                  className="h-full w-full object-contain rounded-full overflow-hidden"
-                  alt="Avatar 3"
-                />
-              </div>
-              <div className="fade hidden">
-                <img
-                  src="/img/img-avatar/ava14.png"
-                  className="h-full w-full object-contain rounded-full overflow-hidden"
-                  alt="Avatar 4"
-                />
-              </div>
-            </div>
-          </div>
-          
-          {/* Selection section (dots and navigation) */}
-          <div className="grid-areas-select flex flex-row h-full w-full text-center">
-            {/* Previous button */}
-            <button
-              type="button"
-              onClick={() => plusSlides(-1)}
-              className="inline-block h-full w-[20%] text-white text-[2rem] font-bold cursor-pointer hover:bg-[#1a2357] active:bg-[#0d123d]"
-            >
-              &#10094;
-            </button>
-            
-            {/* Dots for navigation */}
-            <div
-              ref={dotsRef}
-              className="inline-block h-full w-[60%] align-middle m-auto"
-            >
-              <span
-                onClick={() => currentSlide(1)}
-                className="inline-block bg-white h-[1.25rem] w-[1.25rem] rounded-full cursor-pointer m-[0_0.75rem] hover:bg-[#1a2357] hover:border-2 hover:border-white active:bg-[#0d123d] active:border-2 active:border-white"
-              ></span>
-              <span
-                onClick={() => currentSlide(2)}
-                className="inline-block bg-white h-[1.25rem] w-[1.25rem] rounded-full cursor-pointer m-[0_0.75rem] hover:bg-[#1a2357] hover:border-2 hover:border-white active:bg-[#0d123d] active:border-2 active:border-white"
-              ></span>
-              <span
-                onClick={() => currentSlide(3)}
-                className="inline-block bg-white h-[1.25rem] w-[1.25rem] rounded-full cursor-pointer m-[0_0.75rem] hover:bg-[#1a2357] hover:border-2 hover:border-white active:bg-[#0d123d] active:border-2 active:border-white"
-              ></span>
-              <span
-                onClick={() => currentSlide(4)}
-                className="inline-block bg-white h-[1.25rem] w-[1.25rem] rounded-full cursor-pointer m-[0_0.75rem] hover:bg-[#1a2357] hover:border-2 hover:border-white active:bg-[#0d123d] active:border-2 active:border-white"
-              ></span>
-            </div>
-            
-            {/* Next button */}
-            <button
-              type="button"
-              onClick={() => plusSlides(1)}
-              className="inline-block h-full w-[20%] text-white text-[2rem] font-bold cursor-pointer hover:bg-[#1a2357] active:bg-[#0d123d]"
-            >
-              &#10095;
-            </button>
-          </div>
-          
-          {/* Data section */}
-          <div className="grid-areas-data flex flex-col h-full gap-[1.5rem] p-4 justify-center">
-            <input
-              className="bg-white border-none text-[1.5rem] text-gray-700 h-[2rem] w-full py-[0.5rem] px-[0.5rem] text-center"
-              type="text"
-              placeholder="Nombre"
-              value={nombre}
-              onChange={verificarNomb}
-            />
-            
-            <input
-              className="bg-white border-none text-[1.5rem] text-gray-700 h-[2rem] w-full py-[0.5rem] px-[0.5rem] text-center"
-              type="email"
-              placeholder="Correo electrónico"
-              value={correo}
-              onChange={verificarCorreo}
-            />
-            
-            {estadoCorreo && (
-              <div className="text-white">{estadoCorreo}</div>
-            )}
-            
-            <button
-              className="bg-accent-blue border-none text-[2rem] text-white h-[3rem] w-full px-[0.5rem] text-center hover:bg-[#1a2357] active:bg-[#0d123d] disabled:opacity-50 disabled:cursor-not-allowed"
-              type="button"
-              onClick={datosUsuario}
-              disabled={controlBoton}
-            >
-              ¡Próxima aventura!
-            </button>
-          </div>
+        {/* Travel decorations */}
+        <div className="mt-6 flex justify-between opacity-50">
+          <i className="fas fa-plane text-accent-blue text-3xl transform -rotate-45"></i>
+          <i className="fas fa-map-marker-alt text-accent-blue text-3xl animate-bounce"></i>
+          <i className="fas fa-suitcase-rolling text-accent-blue text-3xl"></i>
         </div>
       </div>
     </div>

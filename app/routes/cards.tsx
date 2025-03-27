@@ -18,7 +18,7 @@ export const links: LinksFunction = () => [
 export default function Cards() {
   const navigate = useNavigate();
   const { state, updateIndice, addRespuesta, removeLastRespuesta, clearRespuestas } = useDestino();
-  
+
   const [indice, setIndice] = useState(state.indice);
   const [opcSelect, setOpcSelect] = useState("");
   const [disSig, setDisSig] = useState(true);
@@ -116,7 +116,7 @@ export default function Cards() {
   // Initialize from context state
   useEffect(() => {
     setIndice(state.indice);
-    
+
     if (state.indice > 0) {
       setDisAtras(false);
     }
@@ -125,7 +125,7 @@ export default function Cards() {
   // Update indicator states when index changes
   useEffect(() => {
     verificarSeleccion();
-    
+
     // Update current question data when index changes
     setPregunta(preguntaA[indice]);
     setOpcion1(opcionesA[indice][0]);
@@ -154,7 +154,7 @@ export default function Cards() {
     if (opcSelect !== "") {
       setDisSig(false);
     }
-    
+
     if (indice === 0) {
       setDisAtras(true);
     }
@@ -250,7 +250,7 @@ export default function Cards() {
     const confirmar = window.confirm(
       "¿Desea crear un nuevo perfir y restablecer las opciones seleccionadas?"
     );
-    
+
     if (confirmar) {
       updateIndice(0);
       clearRespuestas();
@@ -258,195 +258,271 @@ export default function Cards() {
     }
   };
 
+  const getBackgroundOpacity = () => {
+    // Valores de opacidad mucho más bajos para mostrar más la imagen
+    if (!opcSelect) return { start: 0.5, end: 0.6 }; // Opacidad por defecto reducida
+
+    if (opcSelect === opcion1) return { start: 0.3, end: 0.4 }; // Mucho menos opaco para opción 1
+    if (opcSelect === opcion2) return { start: 0.35, end: 0.45 }; // Menos opaco para opción 2
+    if (opcSelect === opcion3) return { start: 0.4, end: 0.5 }; // Menos opaco para opción 3
+
+    return { start: 0.5, end: 0.6 }; // Valor por defecto reducido
+  };
+
+  const opacity = getBackgroundOpacity();
+
   return (
-    <main 
-      className="relative w-full min-h-screen bg-deep-blue p-4 font-sans"
+    <main
+      className="relative w-full min-h-screen p-4 md:p-6 font-sans overflow-x-hidden"
       style={{
-        backgroundImage: backgroundImage ? `linear-gradient(rgba(0, 8, 53, 0.85), rgba(0, 8, 53, 0.9)), url(${backgroundImage})` : 'none',
+        // Uso de un overlay menos azulado y más neutro/transparente
+        backgroundImage: backgroundImage
+          ? `linear-gradient(rgba(0, 0, 0, ${opacity.start}), rgba(0, 0, 0, ${opacity.end})), url(${backgroundImage})`
+          : 'linear-gradient(rgba(0, 8, 53, 0.9), rgba(0, 8, 53, 0.95))',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        backgroundBlendMode: 'overlay',
+        backgroundBlendMode: 'normal', // Cambiado de 'overlay' a 'normal' para más claridad
+        transition: 'all 0.5s ease-in-out'
       }}
     >
-      {/* User data section */}
-      <div className="flex items-center gap-4 mb-6 bg-light-blue p-2 rounded-md shadow-md">
-        <div className="h-12 w-12">
-          <img src={avatar} alt="Avatar del usuario" className="w-full h-full object-cover rounded-full" />
+      {/* User profile header with avatar */}
+      <div className="flex items-center gap-4 mb-6 bg-black/30 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-white/20">
+        <div className="h-12 w-12 rounded-full overflow-hidden shadow-md border-2 border-light-blue">
+          <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
         </div>
-        <h1 className="text-xl font-bold">{nombre}</h1>
+        <h2 className="text-xl font-bold text-white">¡Hola, {nombre}!</h2>
       </div>
 
-      {/* Question title */}
+      {/* Question title with animation */}
       <div className="text-center mb-8">
-        <h1 className="text-2xl text-white font-bold scale-in-ver-center bg-accent-blue bg-opacity-50 p-4 rounded-lg shadow-lg">
+        <h1 className="text-2xl sm:text-3xl text-white font-bold scale-in-ver-center bg-black/40 backdrop-blur-sm p-5 rounded-lg shadow-lg border border-white/20">
           {pregunta}
         </h1>
       </div>
 
-      {/* Navigation indicators - Larger and more visible */}
-      <div className="mb-12">
+      {/* Progress indicators */}
+      <div className="mb-10">
         <div className="flex flex-col gap-4 items-center">
           <button
             onClick={regresarPerfil}
-            className="bg-accent-blue text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-light-blue hover:text-deep-blue transition-colors shadow-lg mb-4 text-lg font-semibold w-40"
+            className="bg-accent-blue text-white px-5 py-2 rounded-lg hover:bg-light-blue hover:text-deep-blue transition-all duration-300 shadow-lg font-medium flex items-center gap-2"
           >
-            <i className="fa-solid fa-user mr-2"></i>Perfil
+            <i className="fa-solid fa-user"></i>Cambiar Perfil
           </button>
-          
-          <div className="flex flex-wrap justify-center gap-3 w-full max-w-3xl mx-auto px-2">
-            <div className={`${t0} w-16 h-16 flex items-center justify-center rounded-full text-deep-blue font-bold text-xl border-4 ${t0 === "contadorOn" ? "border-accent-blue shadow-xl scale-110" : "border-light-blue opacity-70"} transition-all duration-300`}>1</div>
-            <div className={`${t1} w-16 h-16 flex items-center justify-center rounded-full text-deep-blue font-bold text-xl border-4 ${t1 === "contadorOn" ? "border-accent-blue shadow-xl scale-110" : "border-light-blue opacity-70"} transition-all duration-300`}>2</div>
-            <div className={`${t2} w-16 h-16 flex items-center justify-center rounded-full text-deep-blue font-bold text-xl border-4 ${t2 === "contadorOn" ? "border-accent-blue shadow-xl scale-110" : "border-light-blue opacity-70"} transition-all duration-300`}>3</div>
-            <div className={`${t3} w-16 h-16 flex items-center justify-center rounded-full text-deep-blue font-bold text-xl border-4 ${t3 === "contadorOn" ? "border-accent-blue shadow-xl scale-110" : "border-light-blue opacity-70"} transition-all duration-300`}>4</div>
-            <div className={`${t4} w-16 h-16 flex items-center justify-center rounded-full text-deep-blue font-bold text-xl border-4 ${t4 === "contadorOn" ? "border-accent-blue shadow-xl scale-110" : "border-light-blue opacity-70"} transition-all duration-300`}>5</div>
-            <div className={`${t5} w-16 h-16 flex items-center justify-center rounded-full text-deep-blue font-bold text-xl border-4 ${t5 === "contadorOn" ? "border-accent-blue shadow-xl scale-110" : "border-light-blue opacity-70"} transition-all duration-300`}>6</div>
+
+          <div className="w-full max-w-3xl mx-auto flex justify-center gap-2 mt-4 px-1 flex-wrap">
+            {[t0, t1, t2, t3, t4, t5].map((t, i) => (
+              <div
+                key={i}
+                className={`w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-full text-deep-blue font-bold text-lg border-3 ${t === "contadorOn"
+                  ? "bg-accent-blue text-white shadow-lg scale-110"
+                  : "bg-light-blue/70 opacity-70"
+                  } transition-all duration-300`}
+              >
+                {i + 1}
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Cards container - Fixed structure with proper styling */}
-      <div className="flex flex-wrap justify-center gap-8 mb-8">
-        {/* Card 1 */}
-        <label htmlFor="opc1" className="card-container">
-          <div className="relative w-[300px] h-[380px] cursor-pointer shadow-lg transform transition-transform hover:scale-105">
-            <div className="w-full h-full rounded-lg overflow-hidden border-2 border-light-blue bg-white">
-              <div className="w-full h-[85%] relative">
-                <img src={img1} alt="imagen_playa" className="w-full h-full object-cover" />
-              </div>
-              <div className="h-[15%] bg-black bg-opacity-60 text-white flex items-center justify-center">
-                <h3 className="text-lg font-medium">{opcion1}</h3>
-              </div>
-            </div>
-            
-            {/* Info on hover - simplified approach */}
-            <div className="absolute inset-0 w-full h-full bg-light-blue text-accent-blue p-4 flex flex-col justify-center items-center opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg border-2 border-accent-blue">
-              <h3 className="text-xl font-bold mb-4">¿Sabias qué...</h3>
-              <p className="text-base text-center">{dato1}</p>
-            </div>
-          </div>
-        </label>
+      {/* Cards grid - responsive with proper gap */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-28">
 
-        {/* Card 2 */}
-        <label htmlFor="opc2" className="card-container">
-          <div className="relative w-[300px] h-[380px] cursor-pointer shadow-lg transform transition-transform hover:scale-105">
-            <div className="w-full h-full rounded-lg overflow-hidden border-2 border-light-blue bg-white">
-              <div className="w-full h-[85%] relative">
-                <img src={img2} alt="imagen_montaña" className="w-full h-full object-cover" />
-              </div>
-              <div className="h-[15%] bg-black bg-opacity-60 text-white flex items-center justify-center">
-                <h3 className="text-lg font-medium">{opcion2}</h3>
-              </div>
-            </div>
-            
-            {/* Info on hover - simplified approach */}
-            <div className="absolute inset-0 w-full h-full bg-light-blue text-accent-blue p-4 flex flex-col justify-center items-center opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg border-2 border-accent-blue">
-              <h3 className="text-xl font-bold mb-4">¿Sabias qué...</h3>
-              <p className="text-base text-center">{dato2}</p>
-            </div>
-          </div>
-        </label>
+        {/* Card 1 - Fix with explicit heights */}
+        <div className="h-[400px] card-wrapper">
+          <input
+            id="opc1"
+            type="radio"
+            value={opcion1}
+            name="opciones"
+            checked={opcSelect === opcion1}
+            onChange={handleRadioChange}
+            className="hidden"
+          />
+          <label
+            htmlFor="opc1"
+            className="block h-full w-full cursor-pointer relative"
+          >
+            <div className={`h-full w-full rounded-xl overflow-hidden shadow-lg ${opcSelect === opcion1 ? 'ring-4 ring-accent-blue scale-105' : ''} transition-all duration-300 hover:shadow-accent-blue/30 hover:-translate-y-1`}>
+              {/* Card with front/back sides */}
+              <div className="relative h-full w-full">
+                {/* Front side (always visible) */}
+                <div className="absolute inset-0 flex flex-col bg-white/10 backdrop-blur-sm">
+                  {/* Image container */}
+                  <div className="relative h-4/5 overflow-hidden">
+                    <img
+                      src={img1}
+                      alt={opcion1}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-deep-blue to-transparent opacity-40"></div>
+                  </div>
 
-        {/* Card 3 */}
-        <label htmlFor="opc3" className="card-container">
-          <div className="relative w-[300px] h-[380px] cursor-pointer shadow-lg transform transition-transform hover:scale-105">
-            <div className="w-full h-full rounded-lg overflow-hidden border-2 border-light-blue bg-white">
-              <div className="w-full h-[85%] relative">
-                <img src={img3} alt="imagen_ciudad" className="w-full h-full object-cover" />
-              </div>
-              <div className="h-[15%] bg-black bg-opacity-60 text-white flex items-center justify-center">
-                <h3 className="text-lg font-medium">{opcion3}</h3>
+                  {/* Title area */}
+                  <div className="p-4 h-1/5 flex-grow bg-gradient-to-b from-deep-blue/80 to-deep-blue flex flex-col justify-between">
+                    <h3 className="text-xl font-bold text-white text-center">{opcion1}</h3>
+
+                    {/* Info text (hidden by default, shown on hover) */}
+                    <div className="text-light-blue/90 text-sm overflow-y-auto flex-grow opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-2">
+                      <p>{dato1}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hover info overlay */}
+                <div className="absolute inset-0 bg-accent-blue/90 flex items-center justify-center p-6 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300">
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-white mb-4">{opcion1}</h3>
+                    <p className="text-white">{dato1}</p>
+                  </div>
+                </div>
               </div>
             </div>
-            
-            {/* Info on hover - simplified approach */}
-            <div className="absolute inset-0 w-full h-full bg-light-blue text-accent-blue p-4 flex flex-col justify-center items-center opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg border-2 border-accent-blue">
-              <h3 className="text-xl font-bold mb-4">¿Sabias qué...</h3>
-              <p className="text-base text-center">{dato3}</p>
+          </label>
+        </div>
+
+        {/* Card 2 - Fix with explicit heights */}
+        <div className="h-[400px] card-wrapper">
+          <input
+            id="opc2"
+            type="radio"
+            value={opcion2}
+            name="opciones"
+            checked={opcSelect === opcion2}
+            onChange={handleRadioChange}
+            className="hidden"
+          />
+          <label
+            htmlFor="opc2"
+            className="block h-full w-full cursor-pointer relative"
+          >
+            <div className={`h-full w-full rounded-xl overflow-hidden shadow-lg ${opcSelect === opcion2 ? 'ring-4 ring-accent-blue scale-105' : ''} transition-all duration-300 hover:shadow-accent-blue/30 hover:-translate-y-1`}>
+              {/* Card with front/back sides */}
+              <div className="relative h-full w-full">
+                {/* Front side (always visible) */}
+                <div className="absolute inset-0 flex flex-col bg-white/10 backdrop-blur-sm">
+                  {/* Image container */}
+                  <div className="relative h-4/5 overflow-hidden">
+                    <img
+                      src={img2}
+                      alt={opcion2}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-deep-blue to-transparent opacity-40"></div>
+                  </div>
+
+                  {/* Title area */}
+                  <div className="p-4 h-1/5 flex-grow bg-gradient-to-b from-deep-blue/80 to-deep-blue flex flex-col justify-between">
+                    <h3 className="text-xl font-bold text-white text-center">{opcion2}</h3>
+
+                    {/* Info text (hidden by default, shown on hover) */}
+                    <div className="text-light-blue/90 text-sm overflow-y-auto flex-grow opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-2">
+                      <p>{dato2}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hover info overlay */}
+                <div className="absolute inset-0 bg-accent-blue/90 flex items-center justify-center p-6 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300">
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-white mb-4">{opcion2}</h3>
+                    <p className="text-white">{dato2}</p>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </label>
+          </label>
+        </div>
+
+        {/* Card 3 - Fix with explicit heights */}
+        <div className="h-[400px] card-wrapper">
+          <input
+            id="opc3"
+            type="radio"
+            value={opcion3}
+            name="opciones"
+            checked={opcSelect === opcion3}
+            onChange={handleRadioChange}
+            className="hidden"
+          />
+          <label
+            htmlFor="opc3"
+            className="block h-full w-full cursor-pointer relative"
+          >
+            <div className={`h-full w-full rounded-xl overflow-hidden shadow-lg ${opcSelect === opcion3 ? 'ring-4 ring-accent-blue scale-105' : ''} transition-all duration-300 hover:shadow-accent-blue/30 hover:-translate-y-1`}>
+              {/* Card with front/back sides */}
+              <div className="relative h-full w-full">
+                {/* Front side (always visible) */}
+                <div className="absolute inset-0 flex flex-col bg-white/10 backdrop-blur-sm">
+                  {/* Image container */}
+                  <div className="relative h-4/5 overflow-hidden">
+                    <img
+                      src={img3}
+                      alt={opcion3}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-deep-blue to-transparent opacity-40"></div>
+                  </div>
+
+                  {/* Title area */}
+                  <div className="p-4 h-1/5 flex-grow bg-gradient-to-b from-deep-blue/80 to-deep-blue flex flex-col justify-between">
+                    <h3 className="text-xl font-bold text-white text-center">{opcion3}</h3>
+
+                    {/* Info text (hidden by default, shown on hover) */}
+                    <div className="text-light-blue/90 text-sm overflow-y-auto flex-grow opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-2">
+                      <p>{dato3}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hover info overlay */}
+                <div className="absolute inset-0 bg-accent-blue/90 flex items-center justify-center p-6 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300">
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-white mb-4">{opcion3}</h3>
+                    <p className="text-white">{dato3}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </label>
+        </div>
       </div>
 
-      {/* Radio buttons */}
-      <form className="flex justify-center gap-16 mb-10">
-        <div className="radio-container">
-          <label className="flex items-center">
-            <input
-              id="opc1"
-              type="radio"
-              value={opcion1}
-              name="opciones"
-              checked={opcSelect === opcion1}
-              onChange={handleRadioChange}
-              className="form-radio h-6 w-6 text-accent-blue"
-            />
-          </label>
-        </div>
-        <div className="radio-container">
-          <label className="flex items-center">
-            <input
-              id="opc2"
-              type="radio"
-              value={opcion2}
-              name="opciones"
-              checked={opcSelect === opcion2}
-              onChange={handleRadioChange}
-              className="form-radio h-6 w-6 text-accent-blue"
-            />
-          </label>
-        </div>
-        <div className="radio-container">
-          <label className="flex items-center">
-            <input
-              id="opc3"
-              type="radio"
-              value={opcion3}
-              name="opciones"
-              checked={opcSelect === opcion3}
-              onChange={handleRadioChange}
-              className="form-radio h-6 w-6 text-accent-blue"
-            />
-          </label>
-        </div>
-      </form>
-
-      {/* Action buttons - Fixed at bottom with better styling */}
-      <div className="fixed bottom-0 left-0 right-0 bg-deep-blue bg-opacity-95 py-6 shadow-[0_-4px_20px_rgba(0,0,0,0.3)] z-50 backdrop-blur-sm border-t-2 border-accent-blue">
-        <div className="flex justify-center items-center gap-8 px-4 max-w-4xl mx-auto">
+      {/* Navigation buttons - fixed bottom position */}
+      <div className="fixed bottom-0 left-0 right-0 bg-deep-blue/95 backdrop-blur-md py-4 border-t border-accent-blue/30 shadow-[0_-5px_15px_rgba(0,0,0,0.3)] z-50">
+        <div className="container mx-auto flex justify-center items-center gap-4 px-4">
           <button
             type="button"
             onClick={atras}
             disabled={disAtras}
-            className="bg-light-blue text-deep-blue px-8 py-4 rounded-xl text-xl font-bold shadow-xl hover:bg-accent-blue hover:text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed min-w-32 transform hover:scale-105 active:scale-95"
+            className="bg-light-blue text-deep-blue px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-accent-blue hover:text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            <i className="fa-solid fa-arrow-left mr-3"></i>Atrás
+            <i className="fa-solid fa-arrow-left"></i>Atrás
           </button>
-          
+
           {!hidSig && (
             <button
               type="button"
               onClick={siguiente}
               disabled={disSig}
-              className="bg-light-blue text-deep-blue px-8 py-4 rounded-xl text-xl font-bold shadow-xl hover:bg-accent-blue hover:text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed min-w-32 transform hover:scale-105 active:scale-95"
+              className="bg-accent-blue text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-light-blue hover:text-deep-blue transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Siguiente<i className="fa-solid fa-arrow-right ml-3"></i>
+              Siguiente<i className="fa-solid fa-arrow-right"></i>
             </button>
           )}
-          
+
           {!calcular && (
             <Link
               to="/results"
-              className="bg-accent-blue text-white px-8 py-4 rounded-xl text-xl font-bold shadow-xl hover:bg-light-blue hover:text-deep-blue transition-all duration-300 inline-flex items-center min-w-36 justify-center transform hover:scale-105 active:scale-95 animate-pulse"
+              className="bg-accent-blue text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-light-blue hover:text-deep-blue transition-all duration-300 flex items-center gap-2 animate-pulse"
             >
-              <i className="fa-solid fa-calculator mr-3"></i>Calcular Destino
+              <i className="fa-solid fa-calculator"></i>Calcular
             </Link>
           )}
         </div>
       </div>
-
-      {/* Add extra padding at the bottom to compensate for fixed buttons */}
-      <div className="h-28"></div>
     </main>
   );
 }
