@@ -54,6 +54,9 @@ export default function Index() {
     return () => clearInterval(interval);
   }, [nextSlide]);
 
+  // Dropdown state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   return (
     <main className="flex flex-col min-h-screen bg-deep-blue">
       {/* Carousel Section */}
@@ -126,7 +129,7 @@ export default function Index() {
             <div className="max-w-2xl text-center">
               <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-white drop-shadow-lg">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-light-blue to-accent-blue">
-                  Descubre Tu Destino Ideal
+                  Descubre tu destino ideal
                 </span>
               </h1>
               
@@ -145,6 +148,35 @@ export default function Index() {
           </div>
         </Link>
       </section>
+      {/* Footer section */}
+      <footer className="bg-light-blue py-4 mt-auto">
+                <div className="container mx-auto px-4 flex flex-wrap justify-between items-center">
+                    {/* Social Media Links */}
+                    <div className="flex flex-wrap items-center">
+                        <a href="https://www.linkedin.com/company/amadeus/" className="ml-5 mr-1" target="_blank" rel="noreferrer">
+                            <i className="fab fa-linkedin text-black text-2xl"></i>
+                        </a>
+                        
+                        <a href="https://x.com/AmadeusITGroup" className="m-2" target="_blank" rel="noreferrer">
+                            <i className="fab fa-twitter text-black text-2xl"></i>
+                        </a>
+                        
+                        <a href="https://www.facebook.com/AmadeusITGroup/" className="m-2" target="_blank" rel="noreferrer">
+                            <i className="fab fa-facebook text-black text-2xl"></i>
+                        </a>
+                        
+                        <a href="https://www.instagram.com/amadeusitgroup/" className="m-2" target="_blank" rel="noreferrer">
+                            <i className="fab fa-instagram text-black text-2xl"></i>
+                        </a>
+                        
+                        <a href="https://www.youtube.com/user/AmadeusITGroup" className="m-2" target="_blank" rel="noreferrer">
+                            <i className="fab fa-youtube text-black text-2xl"></i>
+                        </a>
+                    </div>
+                    </div>
+            </footer>
     </main>
+    
+    
   );
 }
