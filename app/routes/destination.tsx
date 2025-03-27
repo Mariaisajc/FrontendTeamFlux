@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "@remix-run/react";
 import { LinksFunction } from "@remix-run/node";
+import { useDestino } from "~/services/destinationService";
 
 // Add keyframe animation that Tailwind doesn't provide
 export const links: LinksFunction = () => [
@@ -10,23 +11,8 @@ export const links: LinksFunction = () => [
   },
 ];
 
-// Note: This would be your actual destination service implementation
-interface DestinoService {
-  destinoA: string;
-  destinoE: string;
-  srcA: string;
-  srcE: string;
-}
-
-// Mock destination service (replace with your actual service)
-const destinoService: DestinoService = {
-  destinoA: "Playa del Carmen", // Default value for example
-  destinoE: "Santorini", // Default value for example
-  srcA: "",
-  srcE: "",
-};
-
 export default function Destino() {
+  const { state, updateSrcImages } = useDestino();
   const [america, setAmerica] = useState<string>("");
   const [europa, setEuropa] = useState<string>("");
   const [srcA, setSrcA] = useState<string>("");
@@ -35,257 +21,178 @@ export default function Destino() {
   const [datosE, setDatosE] = useState<string[]>([]);
   const [control, setControl] = useState<boolean>(true);
 
-  // Equivalent to ngOnInit
+  // Initialize from service
   useEffect(() => {
     actualizarDestino();
   }, []);
 
   const actualizarDestino = () => {
-    switch (destinoService.destinoA) {
+    switch (state.destinoA) {
       case "Playa del Carmen":
-        setAmerica(destinoService.destinoA);
-        setEuropa(destinoService.destinoE);
+        setAmerica(state.destinoA);
+        setEuropa(state.destinoE);
         setSrcA("/img/PlayaDelCarmen.jpg");
         setSrcE("/img/Santorini.jpg");
         setDatosA(["México", "Español", "Chichén-Itzá", "Salbutes"]);
         setDatosE(["Grecia", "Griego", "Oia", "Hummus de Fava"]);
         break;
       case "Tulum":
-        setAmerica(destinoService.destinoA);
-        setEuropa(destinoService.destinoE);
+        setAmerica(state.destinoA);
+        setEuropa(state.destinoE);
         setSrcA("/img/Tulum.jpg");
         setSrcE("/img/ibiza.jpg");
-        setDatosA([
-          "México",
-          "Español",
-          "Cenote Calavera",
-          "Ceviche de Pescado",
-        ]);
-        setDatosE([
-          "España",
-          "Castellano/Catalán",
-          "Islote Es Vedrá",
-          "Sofrit pagès",
-        ]);
+        setDatosA(["México", "Español", "Cenote Calavera", "Ceviche de Pescado"]);
+        setDatosE(["España", "Castellano/Catalán", "Islote Es Vedrá", "Sofrit pagès"]);
         break;
       case "Honolulu":
-        setAmerica(destinoService.destinoA);
-        setEuropa(destinoService.destinoE);
+        setAmerica(state.destinoA);
+        setEuropa(state.destinoE);
         setSrcA("/img/Honolulu.jpg");
         setSrcE("/img/Malta.jpg");
         setDatosA(["Hawái", "Ingles/Hawaiano", "Playa Hapuna", "Saimin"]);
         setDatosE(["Malta", "Ingles/Maltés", "La Valeta", "Aljotta"]);
         break;
       case "Cartagena":
-        setAmerica(destinoService.destinoA);
-        setEuropa(destinoService.destinoE);
-        setSrcA("/img/Cartagena.jpg");
+        setAmerica(state.destinoA);
+        setEuropa(state.destinoE);
+        setSrcA("/img/cartagena.jpg");
         setSrcE("/img/Barcelona.jpg");
-        setDatosA([
-          "Colombia",
-          "Español",
-          "Castillo San Felipe",
-          "Cazuela de Mariscos",
-        ]);
-        setDatosE([
-          "España",
-          "Castellano/Catalán",
-          "Sagrada Familia",
-          "Pa amb tomàquet",
-        ]);
+        setDatosA(["Colombia", "Español", "Castillo San Felipe", "Cazuela de Mariscos"]);
+        setDatosE(["España", "Castellano/Catalán", "Sagrada Familia", "Pa amb tomàquet"]);
         break;
       case "Bora Bora":
         setControl(false);
-        setAmerica(destinoService.destinoA);
-        setEuropa(destinoService.destinoE);
+        setAmerica(state.destinoA);
+        setEuropa(state.destinoE);
         setSrcA("/img/BoraBora.jpg");
         setSrcE("/img/dubai.jpg");
         setDatosA(["Polinesia Francesa", "Francés", "Otemanu", "Roulottes"]);
         setDatosE(["Emiratos Árabes", "Árabe", "Burj Al Arab", "El Mezze"]);
         break;
       case "Río de Janeiro":
-        setAmerica(destinoService.destinoA);
-        setEuropa(destinoService.destinoE);
+        setAmerica(state.destinoA);
+        setEuropa(state.destinoE);
         setSrcA("/img/RioDeJaneiro.jpg");
         setSrcE("/img/lisboa.jpg");
         setDatosA(["Brasil", "Portugués", "Cristo Redentor", "Feijoada"]);
         setDatosE(["Portugal", "Portugués", "Tranvía 28", "Pasteles de Belem"]);
         break;
       case "Nueva York":
-        setAmerica(destinoService.destinoA);
-        setEuropa(destinoService.destinoE);
+        setAmerica(state.destinoA);
+        setEuropa(state.destinoE);
         setSrcA("/img/NuevaYork.jpg");
         setSrcE("/img/paris.jpg");
         setDatosA(["EE.UU", "Inglés", "Central Park", "Pizza"]);
         setDatosE(["Francia", "Frances", "Torre Eiffel", "Foie gra"]);
         break;
       default:
-        // Default case if needed
         setSrcA("/img/tiera.png"); // Default image
         setSrcE("/img/tiera.png"); // Default image
         break;
     }
 
-    // Update the service (if needed)
-    destinoService.srcA = srcA;
-    destinoService.srcE = srcE;
+    // Update the service with image paths
+    updateSrcImages(srcA, srcE);
   };
 
   return (
-    <main className="h-[80vh] w-full mt-[5vh] mb-[5vh] bg-[#000835] flex flex-col font-sans gap-[2vh]">
-      <h1 className="flex items-center justify-center text-center text-white">
-        Tus Destinos:
-      </h1>
+    <main className="min-h-screen w-full bg-deep-blue font-sans px-4 py-8 md:py-12">
+      {/* Header with animated underline */}
+      <div className="mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-white text-center relative inline-block left-1/2 transform -translate-x-1/2">
+          Tus Destinos
+          <span className="block h-1 bg-accent-blue mt-2 w-0 group-hover:w-full transition-all duration-300 animate-[grow_1s_ease-out_forwards]"></span>
+        </h1>
+        
+        {!control && (
+          <h3 className="text-lg text-white text-center mt-4 max-w-3xl mx-auto">
+            Tus gustos son bastante exóticos, te sugerimos los siguientes lugares:
+          </h3>
+        )}
+      </div>
 
-      {!control && (
-        <h3 className="flex items-center justify-center text-center text-white">
-          Tus Gustos son bastante exóticos, te sugerimos los siguientes lugares:
-        </h3>
-      )}
+      {/* Responsive destinations container */}
+      <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 md:gap-10 px-4">
+        {/* America Destination Card */}
+        <DestinationCard
+          title="Aventura en América"
+          destination={america}
+          imageSrc={srcA}
+          data={datosA}
+        />
 
-      <div className="flex justify-evenly h-3/4 md:flex-row flex-col md:gap-0 gap-7">
-        <section className="flex flex-col items-center md:w-2/5 w-3/4 justify-between bg-[#c5d5f9] shadow-[18px_14px_0px_2px_#3a8bff] md:h-auto h-1/2 self-center group">
-          <div className="h-[10%]">
-            <h2 className="cursor-pointer" onClick={actualizarDestino}>
-              Aventura en América
-            </h2>
-          </div>
-
-          <div className="h-[10%]">
-            <input
-              value={america}
-              className="text-center border-none bg-[#c5d5f9] text-xl font-bold focus-in-expand"
-              type="text"
-              readOnly
-              id="destinoAmerica"
-            />
-          </div>
-
-          <div className="relative h-3/5 mx-[10%]">
-            <img
-              src={srcA}
-              alt="Destino en America"
-              id="imagenAmerica"
-              className="max-w-full max-h-full object-cover w-[900px] h-[900px]"
-            />
-            <div className="absolute bottom-full left-0 right-0 bg-[#000835] overflow-hidden w-full h-0 transition-all duration-500 group-hover:bottom-0 group-hover:h-full">
-              <div className="text-white text-sm font-thin absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-left grid grid-cols-[40%_60%] gap-[5px] md:left-1/2 left-[60%]">
-                <p>Pais:</p>
-                <input
-                  className="text-left text-[#c5d5f9] border-none bg-[#000835] text-sm"
-                  type="text"
-                  value={datosA[0] || ""}
-                  readOnly
-                />
-                <p>Idioma:</p>
-                <input
-                  className="text-left text-[#c5d5f9] border-none bg-[#000835] text-sm"
-                  type="text"
-                  value={datosA[1] || ""}
-                  readOnly
-                />
-                <p>Lugar Imperdible:</p>
-                <input
-                  className="text-left text-[#c5d5f9] border-none bg-[#000835] text-sm"
-                  type="text"
-                  value={datosA[2] || ""}
-                  readOnly
-                />
-                <p>Comida típica:</p>
-                <input
-                  className="text-left text-[#c5d5f9] border-none bg-[#000835] text-sm"
-                  type="text"
-                  value={datosA[3] || ""}
-                  readOnly
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="relative group">
-            <Link to="/plans">
-              <img
-                src="/img/paquete.png"
-                alt="Paquete de viajes"
-                className="w-[30px]"
-              />
-            </Link>
-            <span className="invisible group-hover:visible w-[100px] bg-[#000835] text-white text-center rounded-lg text-xs absolute z-10">
-              Explora tus opciones
-            </span>
-          </div>
-        </section>
-
-        <section className="flex flex-col items-center md:w-2/5 w-3/4 justify-between bg-[#c5d5f9] shadow-[18px_14px_0px_2px_#3a8bff] md:h-auto h-1/2 self-center group">
-          <div className="h-[10%]">
-            <h2 className="cursor-pointer">Aventura en Europa</h2>
-          </div>
-
-          <div className="h-[10%]">
-            <input
-              value={europa}
-              className="text-center border-none bg-[#c5d5f9] text-xl font-bold focus-in-expand"
-              type="text"
-              readOnly
-              id="destinoEuropa"
-            />
-          </div>
-
-          <div className="relative h-3/5 mx-[10%]">
-            <img
-              src={srcE}
-              alt="Destino en Europa"
-              id="imagenEuropa"
-              className="max-w-full max-h-full object-cover w-[900px] h-[900px]"
-            />
-            <div className="absolute bottom-full left-0 right-0 bg-[#000835] overflow-hidden w-full h-0 transition-all duration-500 group-hover:bottom-0 group-hover:h-full">
-              <div className="text-white text-sm font-thin absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-left grid grid-cols-[40%_60%] gap-[5px] md:left-1/2 left-[60%]">
-                <p>Pais:</p>
-                <input
-                  className="text-left text-[#c5d5f9] border-none bg-[#000835] text-sm"
-                  type="text"
-                  value={datosE[0] || ""}
-                  readOnly
-                />
-                <p>Idioma:</p>
-                <input
-                  className="text-left text-[#c5d5f9] border-none bg-[#000835] text-sm"
-                  type="text"
-                  value={datosE[1] || ""}
-                  readOnly
-                />
-                <p>Lugar Imperdible:</p>
-                <input
-                  className="text-left text-[#c5d5f9] border-none bg-[#000835] text-sm"
-                  type="text"
-                  value={datosE[2] || ""}
-                  readOnly
-                />
-                <p>Comida típica:</p>
-                <input
-                  className="text-left text-[#c5d5f9] border-none bg-[#000835] text-sm"
-                  type="text"
-                  value={datosE[3] || ""}
-                  readOnly
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="relative group">
-            <Link to="/plans">
-              <img
-                src="/img/paquete.png"
-                alt="Paquete de viajes"
-                className="w-[30px]"
-              />
-            </Link>
-            <span className="invisible group-hover:visible w-[100px] bg-[#000835] text-white text-center rounded-lg text-xs absolute z-10">
-              Explora tus opciones
-            </span>
-          </div>
-        </section>
+        {/* Europe Destination Card */}
+        <DestinationCard
+          title="Aventura en Europa"
+          destination={europa}
+          imageSrc={srcE}
+          data={datosE}
+        />
       </div>
     </main>
+  );
+}
+
+// Reusable destination card component for better structure
+function DestinationCard({ title, destination, imageSrc, data }: { 
+  title: string;
+  destination: string;
+  imageSrc: string;
+  data: string[];
+}) {
+  return (
+    <section className="w-full lg:w-1/2 bg-white rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-[1.02] group">
+      {/* Card header with gradient background */}
+      <div className="bg-gradient-to-r from-deep-blue to-accent-blue p-4 text-center">
+        <h2 className="font-bold text-xl text-white">{title}</h2>
+      </div>
+      
+      {/* Destination name with animated reveal */}
+      <div className="bg-light-blue p-3 text-center">
+        <h3 className="text-2xl font-bold text-deep-blue focus-in-expand">
+          {destination}
+        </h3>
+      </div>
+      
+      {/* Image container with hover effect */}
+      <div className="relative aspect-[4/3] overflow-hidden">
+        {/* Main image */}
+        <img
+          src={imageSrc}
+          alt={`Destino en ${title}`}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        
+        {/* Info overlay that slides up on hover */}
+        <div className="absolute inset-x-0 bottom-0 h-0 bg-gradient-to-t from-deep-blue to-deep-blue/80 backdrop-blur-sm transition-all duration-500 ease-in-out group-hover:h-full overflow-y-auto">
+          <div className="h-full flex flex-col justify-center p-6">
+            <div className="grid grid-cols-[1fr_2fr] gap-3 text-white">
+              <p className="font-semibold text-light-blue">País:</p>
+              <p className="text-white">{data[0]}</p>
+              
+              <p className="font-semibold text-light-blue">Idioma:</p>
+              <p className="text-white">{data[1]}</p>
+              
+              <p className="font-semibold text-light-blue">Lugar Imperdible:</p>
+              <p className="text-white">{data[2]}</p>
+              
+              <p className="font-semibold text-light-blue">Comida típica:</p>
+              <p className="text-white">{data[3]}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Action footer */}
+      <div className="bg-light-blue p-4 flex justify-center items-center">
+        <Link 
+          to="/plans" 
+          className="flex items-center gap-2 bg-accent-blue hover:bg-deep-blue text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-xl transform hover:scale-105"
+        >
+          <img src="/img/paquete.png" alt="Paquete de viajes" className="w-6 h-6" />
+          <span>Ver Opciones de Viaje</span>
+        </Link>
+      </div>
+    </section>
   );
 }
