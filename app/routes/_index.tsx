@@ -34,13 +34,13 @@ export default function Index() {
   ];
 
   const prevSlide = () => {
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === 0 ? carouselImages.length - 1 : prevIndex - 1
     );
   };
 
   const nextSlide = useCallback(() => {
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === carouselImages.length - 1 ? 0 : prevIndex + 1
     );
   }, [carouselImages.length]);
@@ -50,51 +50,53 @@ export default function Index() {
     const interval = setInterval(() => {
       nextSlide();
     }, 5000);
-    
+
     return () => clearInterval(interval);
   }, [nextSlide]);
 
   return (
     <main className="flex flex-col min-h-screen bg-deep-blue">
       {/* Carousel Section */}
-      <div className="w-full px-4 md:px-16 py-8 bg-[#000835]">
-        <div className="relative w-full h-64 md:h-96 overflow-hidden rounded-lg shadow-2xl">
+      <div className="w-full px-4 md:px-16 py-8 bg-deep-blue">
+        <div className="relative w-full h-64 sm:h-80 md:h-96 overflow-hidden rounded-lg shadow-2xl">
           {/* Carousel images with transition */}
           {carouselImages.map((img, index) => (
-            <div 
+            <div
               key={index}
               className={`absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out ${
                 index === currentIndex ? 'opacity-100' : 'opacity-0'
               }`}
             >
-              <img 
-                src={img} 
-                alt={`Destination ${index + 1}`} 
+              <img
+                src={img}
+                alt={`Destination ${index + 1}`}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+              <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/50"></div>
             </div>
           ))}
-          
+
           {/* Controls */}
-          <button 
+          <button
             onClick={prevSlide}
-            className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all z-10"
+            className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-accent-blue transition-all z-10 focus:outline-none focus:ring-2 focus:ring-accent-blue"
+            aria-label="Previous slide"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          
-          <button 
+
+          <button
             onClick={nextSlide}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all z-10"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-accent-blue transition-all z-10 focus:outline-none focus:ring-2 focus:ring-accent-blue"
+            aria-label="Next slide"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-          
+
           {/* Indicator dots */}
           <div className="absolute bottom-4 w-full flex justify-center gap-2">
             {carouselImages.map((_, index) => (
@@ -102,7 +104,7 @@ export default function Index() {
                 key={index}
                 onClick={() => setCurrentIndex(index)}
                 className={`w-3 h-3 rounded-full transition-all ${
-                  index === currentIndex ? 'bg-white scale-110' : 'bg-white bg-opacity-50'
+                  index === currentIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/70'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               ></button>
@@ -111,31 +113,37 @@ export default function Index() {
         </div>
       </div>
 
-      {/* Main content section */}
-      <section className="flex flex-col md:flex-row justify-center items-center p-[5px] w-full h-[70vh] bg-deep-blue">
-        <div className="flex flex-col md:flex-row justify-center items-center m-[5px] p-[5px] w-full bg-[#000835]">
-          <div 
-            className="flex flex-col justify-end items-center m-[5px] p-[5px] w-full h-[35vh] md:h-[50vh] bg-light-blue bg-cover bg-center bg-no-repeat hover:opacity-90 cursor-pointer"
-            style={{ backgroundImage: "url(/img/tiera.png)" }}
-          >
-            {/* Link wrapper for navigation */}
-            <Link to="/profile" className="w-full h-full"></Link>
+      {/* Modern Card Section - Combined containers */}
+      <section className="w-full px-4 md:px-16 py-8 flex justify-center items-center">
+        <Link 
+          to="/profile"
+          className="w-full max-w-5xl relative rounded-xl overflow-hidden group transition-transform duration-300 hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-accent-blue"
+        >
+          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url(/img/tiera.png)" }}></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-deep-blue/90 to-deep-blue/70 backdrop-blur-xs"></div>
+          
+          <div className="relative z-10 p-8 md:p-12 flex flex-col min-h-[60vh] justify-center items-center">
+            <div className="max-w-2xl text-center">
+              <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-white drop-shadow-lg">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-light-blue to-accent-blue">
+                  Descubre Tu Destino Ideal
+                </span>
+              </h1>
+              
+              <p className="text-white/90 text-lg md:text-xl mb-8 leading-relaxed">
+                ¿Estás cansado de pasar horas buscando el destino perfecto para tu próximo viaje?
+                ¿Te gustaría crear un viaje de acuerdo a tus preferencias y sin complicaciones?
+              </p>
+              
+              <div className="inline-block bg-accent-blue text-white font-bold px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 hover:shadow-accent-blue/50 hover:bg-light-blue hover:text-deep-blue group-hover:scale-105 animate-pulse hover:animate-none">
+                ¡Haz click y prepárate para viajar!
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-col justify-center items-center text-center gap-[10%] m-[5%] p-[15px] w-full h-[50vh] bg-deep-blue text-white border-2 border-accent-blue rounded-lg shadow-lg">
-  <h1 className="text-3xl font-bold text-accent-blue">Información</h1>
-  <div className="max-w-2xl">
-    <p className="text-justify text-lg">
-      ¿Estás cansado de pasar horas buscando el destino perfecto para tu próximo viaje?
-      ¿Te gustaría crear un viaje de acuerdo a tus preferencias y sin complicaciones?
-    </p>
-    <p className="mt-6 text-center">
-      <span className="bg-accent-blue px-4 py-2 rounded-md inline-block font-bold animate-pulse">
-        ¡Dale click a la imagen y prepárate para viajar!
-      </span>
-    </p>
-  </div>
-</div>
-        </div>
+        </Link>
       </section>
     </main>
   );
