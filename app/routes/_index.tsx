@@ -3,6 +3,8 @@ import type { MetaFunction } from "@remix-run/node";
 import { Link } from "@remix-run/react";
 import { LinksFunction } from "@remix-run/node";
 
+import Footer from "~/components/Footer";
+
 export const links: LinksFunction = () => [
   {
     rel: "stylesheet",
@@ -21,16 +23,16 @@ export default function Index() {
   // Carousel state and functionality
   const [currentIndex, setCurrentIndex] = useState(0);
   const carouselImages = [
-    "/img/Imagenes/1-paris.jpg",
-    "/img/Imagenes/cartagena.jpg",
-    "/img/Imagenes/interlaken.jpg",
-    "/img/Imagenes/3-NewYork.jpg",
-    "/img/Imagenes/Machu-Picchu.jpg",
-    "/img/Imagenes/ibiza.jpg",
-    "/img/Imagenes/Tulum.jpg",
-    "/img/Imagenes/Londres.jpg",
-    "/img/Imagenes/roma.jpg",
-    "/img/Imagenes/innsbruck.jpg"
+    "/img/1-paris.jpg",
+    "/img/cartagena.jpg",
+    "/img/interlaken.jpg",
+    "/img/3-NewYork.jpg",
+    "/img/Machu-Picchu.jpg",
+    "/img/ibiza.jpg",
+    "/img/Tulum.jpg",
+    "/img/Londres.jpg",
+    "/img/roma.jpg",
+    "/img/innsbruck.jpg"
   ];
 
   const prevSlide = () => {
@@ -66,9 +68,8 @@ export default function Index() {
           {carouselImages.map((img, index) => (
             <div
               key={index}
-              className={`absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out ${
-                index === currentIndex ? 'opacity-100' : 'opacity-0'
-              }`}
+              className={`absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out ${index === currentIndex ? 'opacity-100' : 'opacity-0'
+                }`}
             >
               <img
                 src={img}
@@ -106,9 +107,8 @@ export default function Index() {
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                className={`w-3 h-3 rounded-full transition-all ${
-                  index === currentIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/70'
-                }`}
+                className={`w-3 h-3 rounded-full transition-all ${index === currentIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/70'
+                  }`}
                 aria-label={`Go to slide ${index + 1}`}
               ></button>
             ))}
@@ -118,13 +118,13 @@ export default function Index() {
 
       {/* Modern Card Section - Combined containers */}
       <section className="w-full px-4 md:px-16 py-8 flex justify-center items-center">
-        <Link 
+        <Link
           to="/profile"
           className="w-full max-w-5xl relative rounded-xl overflow-hidden group transition-transform duration-300 hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-accent-blue"
         >
           <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url(/img/tiera.png)" }}></div>
           <div className="absolute inset-0 bg-gradient-to-r from-deep-blue/90 to-deep-blue/70 backdrop-blur-xs"></div>
-          
+
           <div className="relative z-10 p-8 md:p-12 flex flex-col min-h-[60vh] justify-center items-center">
             <div className="max-w-2xl text-center">
               <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-white drop-shadow-lg">
@@ -132,12 +132,12 @@ export default function Index() {
                   Descubre tu destino ideal
                 </span>
               </h1>
-              
+
               <p className="text-white/90 text-lg md:text-xl mb-8 leading-relaxed">
                 ¿Estás cansado de pasar horas buscando el destino perfecto para tu próximo viaje?
                 ¿Te gustaría crear un viaje de acuerdo a tus preferencias y sin complicaciones?
               </p>
-              
+
               <div className="inline-block bg-accent-blue text-white font-bold px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 hover:shadow-accent-blue/50 hover:bg-light-blue hover:text-deep-blue group-hover:scale-105 animate-pulse hover:animate-none">
                 ¡Haz click y prepárate para viajar!
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -148,35 +148,6 @@ export default function Index() {
           </div>
         </Link>
       </section>
-      {/* Footer section */}
-      <footer className="bg-light-blue py-4 mt-auto">
-                <div className="container mx-auto px-4 flex flex-wrap justify-between items-center">
-                    {/* Social Media Links */}
-                    <div className="flex flex-wrap items-center">
-                        <a href="https://www.linkedin.com/company/amadeus/" className="ml-5 mr-1" target="_blank" rel="noreferrer">
-                            <i className="fab fa-linkedin text-black text-2xl"></i>
-                        </a>
-                        
-                        <a href="https://x.com/AmadeusITGroup" className="m-2" target="_blank" rel="noreferrer">
-                            <i className="fab fa-twitter text-black text-2xl"></i>
-                        </a>
-                        
-                        <a href="https://www.facebook.com/AmadeusITGroup/" className="m-2" target="_blank" rel="noreferrer">
-                            <i className="fab fa-facebook text-black text-2xl"></i>
-                        </a>
-                        
-                        <a href="https://www.instagram.com/amadeusitgroup/" className="m-2" target="_blank" rel="noreferrer">
-                            <i className="fab fa-instagram text-black text-2xl"></i>
-                        </a>
-                        
-                        <a href="https://www.youtube.com/user/AmadeusITGroup" className="m-2" target="_blank" rel="noreferrer">
-                            <i className="fab fa-youtube text-black text-2xl"></i>
-                        </a>
-                    </div>
-                    </div>
-            </footer>
     </main>
-    
-    
   );
 }

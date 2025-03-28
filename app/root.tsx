@@ -12,6 +12,7 @@ import { DestinoProvider } from "./services/destinationService";
 import "./tailwind.css";
 
 import MenuNavigation from "./components/MenuNavigation";
+import Footer from "./components/Footer";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -53,6 +54,7 @@ export default function App() {
     <DestinoProvider>
       <MenuNavigation />
       <Outlet />
+      <Footer />
     </DestinoProvider>
   );
 }

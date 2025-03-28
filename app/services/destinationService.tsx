@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useCallback, useMemo } from "react";
 
 // Define the interface for our destination service state
 interface DestinoServiceState {
@@ -11,6 +11,7 @@ interface DestinoServiceState {
   avatar: string;
   srcA: string;
   srcE: string;
+  userId: number | null; // Nuevo campo para almacenar el ID del usuario
 }
 
 // Define the interface for our context
@@ -25,6 +26,7 @@ interface DestinoContextType {
   updateAvatar: (avatar: string) => void;
   updateSrcImages: (srcA: string, srcE: string) => void;
   resetService: () => void;
+  updateUserId: (userId: number) => void; // Nuevo método para actualizar el userId
 }
 
 // Create the context with a default value
@@ -41,19 +43,24 @@ const initialState: DestinoServiceState = {
   avatar: "",
   srcA: "",
   srcE: "",
+  userId: null, // Inicializado como null
 };
 
 // Create the provider component
 export function DestinoProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DestinoServiceState>(initialState);
 
-  // Methods to update state, similar to what you'd use in Angular service
-  const updateIndice = (indice: number) => {
+  // Memoize update functions to prevent recreation on every render
+  const updateIndice = useCallback((indice: number) => {
     setState((prev) => ({ ...prev, indice }));
-  };
+  }, []);
 
   const updateDestinos = (destinoA: string, destinoE: string) => {
-    setState((prev) => ({ ...prev, destinoA, destinoE }));
+    console.log("Updating destinations:", destinoA, destinoE);
+    setState((prev) => {
+      console.log("Previous state:", prev);
+      return { ...prev, destinoA, destinoE };
+    });
   };
 
   const addRespuesta = (respuesta: string) => {
@@ -83,6 +90,7 @@ export function DestinoProvider({ children }: { children: ReactNode }) {
   };
 
   const updateSrcImages = (srcA: string, srcE: string) => {
+    console.log("Updating image sources:", srcA.substring(0, 50), srcE.substring(0, 50));
     setState((prev) => ({ ...prev, srcA, srcE }));
   };
 
@@ -90,8 +98,13 @@ export function DestinoProvider({ children }: { children: ReactNode }) {
     setState(initialState);
   };
 
-  // Create value object to provide to consumers
-  const value = {
+  // Nuevo método para actualizar el userId
+  const updateUserId = (userId: number) => {
+    setState((prev) => ({ ...prev, userId }));
+  };
+
+  // Memoize the context value to prevent unnecessary re-renders of consumers
+  const value = useMemo(() => ({
     state,
     updateIndice,
     updateDestinos,
@@ -102,25 +115,24 @@ export function DestinoProvider({ children }: { children: ReactNode }) {
     updateAvatar,
     updateSrcImages,
     resetService,
-  };
+    updateUserId,
+  }), [state, updateIndice, updateDestinos, /* other dependencies */]);
 
   return (
     <DestinoContext.Provider value={value}>{children}</DestinoContext.Provider>
   );
 }
 
-// Custom hook to use the destino service
+// Add this function or update if it exists
 export function useDestino() {
   const context = useContext(DestinoContext);
-  if (context === undefined) {
-    throw new Error("useDestino must be used within a DestinoProvider");
+  if (!context) {
+    throw new Error("useDestino debe ser usado dentro de un DestinoProvider");
   }
   return context;
 }
 
-// Export a singleton instance for components that can't use hooks
-// This is similar to how Angular services are globally available
-// Note: Using this is not the React way but provides a migration path
+// El resto del código se mantiene igual...
 export const destinoService = {
   indice: initialState.indice,
   destinoA: initialState.destinoA,
@@ -131,6 +143,7 @@ export const destinoService = {
   avatar: initialState.avatar,
   srcA: initialState.srcA,
   srcE: initialState.srcE,
+  userId: initialState.userId,
   
   // These methods will be used by components that haven't been migrated yet
   updateIndice: (indice: number) => {

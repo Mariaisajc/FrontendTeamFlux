@@ -1,6 +1,9 @@
-import { Link } from "@remix-run/react";
+import { Link, useSearchParams } from "@remix-run/react";
 import { LinksFunction } from "@remix-run/node";
 import { useDestino } from "~/services/destinationService";
+import { useEffect, useState } from "react";
+import { cityClient } from "~/services/cityService"; 
+import { City } from "~/services/Interfaces";
 
 export const links: LinksFunction = () => [
   {
@@ -14,28 +17,99 @@ export const links: LinksFunction = () => [
 ];
 
 export default function Plans() {
-  // Use the destination service
   const { state } = useDestino();
-  const destino = state.destinoA;
-  const srcA = state.srcA;
+  const [searchParams] = useSearchParams();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Get destination from URL params, fallback to state or default
+  const destinationParam = searchParams.get("destination");
+  const [destino, setDestino] = useState<string>(destinationParam || "");
+  const [cityData, setCityData] = useState<City | null>(null);
+  
+  // Background image from cityData or from state
+  const [backgroundImage, setBackgroundImage] = useState<string>("");
+  
+  useEffect(() => {
+    // Set the destination based on what we have
+    if (destinationParam) {
+      setDestino(destinationParam);
+    } else if (state.destinoA) {
+      setDestino(state.destinoA); // Default to America destination
+    }
+  }, [destinationParam, state.destinoA]);
+  
+  // Fetch city data when destination changes
+  useEffect(() => {
+    async function fetchCityData() {
+      if (!destino) return;
+      
+      try {
+        setLoading(true);
+        const cityInfo = await cityClient.getCityByName(destino);
+        setCityData(cityInfo);
+        
+        // Set background image
+        if (cityInfo.imagePath) {
+          setBackgroundImage(cityInfo.imagePath);
+        } else if (destinationParam && destino === state.destinoA && state.srcA) {
+          setBackgroundImage(state.srcA);
+        } else if (destinationParam && destino === state.destinoE && state.srcE) {
+          setBackgroundImage(state.srcE);
+        } else {
+          // Default image
+          setBackgroundImage("/img/tiera.png");
+        }
+      } catch (err: any) {
+        console.error("Error fetching city data:", err);
+        setError(`No se pudo cargar la información para ${destino}`);
+        
+        // Fallback to images from state
+        if (destino === state.destinoA && state.srcA) {
+          setBackgroundImage(state.srcA);
+        } else if (destino === state.destinoE && state.srcE) {
+          setBackgroundImage(state.srcE);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchCityData();
+  }, [destino, state.destinoA, state.destinoE, state.srcA, state.srcE]);
+  
+  // Generate destination-specific content based on the city data
+  const getAccommodationTitle = () => {
+    return `Los Mejores Hoteles en ${destino || "este Destino"}`;
+  };
+  
+  const getAccommodationDescription = () => {
+    if (cityData?.country) {
+      return `Descubre las mejores opciones de hospedaje en ${destino}, ${cityData.country}. Perfectas para disfrutar de la cultura local y la gastronomía.`;
+    }
+    return `Estas son las opciones de hospedaje que te recomendamos para ${destino}. Cada una ofrece una experiencia única adaptada a tu estilo de viaje.`;
+  };
+  
+  const getAttractionDescription = () => {
+    if (cityData?.attraction) {
+      return `No puedes perderte la visita a ${cityData.attraction}, una de las atracciones más impresionantes de ${destino}.`;
+    }
+    return `Descubre las mejores atracciones en ${destino} durante tu estancia.`;
+  };
+  
+  const getFoodDescription = () => {
+    if (cityData?.food) {
+      return `Prueba el delicioso ${cityData.food}, especialidad culinaria de la región.`;
+    }
+    return `La gastronomía local es una experiencia que no te puedes perder.`;
+  };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-deep-blue to-deep-blue/90 font-sans">
-      {/* Hero section with destination image and overlay */}
-      <div className="relative h-[40vh] md:h-[50vh] overflow-hidden">
-        {/* Background image with parallax effect */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center scale-110"
-          style={{ 
-            backgroundImage: `url(${srcA || "/img/PlayaDelCarmen.jpg"})`,
-            transform: "translateZ(0)",
-          }}
-        ></div>
-        
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-deep-blue/60 to-deep-blue"></div>
-        
-        {/* Content */}
+    <main className="min-h-screen bg-gradient-to-b from-deep-blue to-deep-blue/90 font-sans relative">
+      {/* Hero Section with destination background */}
+      <div className="relative h-96 bg-cover bg-center" style={{
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.7)), url('${backgroundImage}')`
+      }}>
         <div className="absolute inset-0 flex flex-col justify-between p-6">
           {/* Back navigation */}
           <div className="self-start">
@@ -51,8 +125,13 @@ export default function Plans() {
           {/* Destination info */}
           <div className="text-center mb-8">
             <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 drop-shadow-lg">
-              {destino || "Playa del Carmen"}
+              {destino || "Destino Exótico"}
             </h1>
+            {cityData?.country && (
+              <p className="text-xl text-light-blue font-medium max-w-2xl mx-auto">
+                {cityData.country} - {cityData.language}
+              </p>
+            )}
             <p className="text-xl text-light-blue font-medium max-w-2xl mx-auto">
               Planes personalizados para tu aventura ideal
             </p>
@@ -60,6 +139,24 @@ export default function Plans() {
         </div>
       </div>
 
+      {/* Loading state */}
+      {loading && (
+        <div className="fixed inset-0 bg-deep-blue/80 flex items-center justify-center z-50">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent-blue"></div>
+            <p className="text-white mt-4">Cargando planes para {destino}...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error message */}
+      {error && (
+        <div className="bg-red-500/80 text-white p-4 text-center">
+          {error}
+        </div>
+      )}
+
+      {/* The rest of your plans page (tabs, sections, etc.) */}
       {/* Options Tabs - Mobile Scrolling, Desktop Fixed */}
       <div className="sticky top-16 z-30 bg-light-blue shadow-md">
         <div className="container mx-auto px-4">
@@ -81,12 +178,11 @@ export default function Plans() {
       <section id="accommodation" className="py-16 container mx-auto px-4 md:px-8">
         <div className="mb-10 text-center">
           <h2 className="text-3xl font-bold text-white mb-2 inline-block relative">
-            Opciones de Hospedaje
+            {getAccommodationTitle()}
             <span className="block h-1 bg-accent-blue mt-2 animate-[grow_1s_ease-out_forwards]"></span>
           </h2>
           <p className="text-light-blue/90 max-w-2xl mx-auto mt-4">
-            Estas son las opciones de hospedaje que te recomendamos según tus preferencias. 
-            Cada una ofrece una experiencia única adaptada a tu estilo de viaje.
+            {getAccommodationDescription()}
           </p>
         </div>
 
@@ -193,6 +289,22 @@ export default function Plans() {
             </div>
           </div>
         </div>
+
+        {/* Display attraction info if available */}
+        {cityData?.attraction && (
+          <div className="mt-12 p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
+            <h3 className="text-2xl font-bold text-accent-blue mb-3">Atracción destacada</h3>
+            <p className="text-light-blue">{getAttractionDescription()}</p>
+          </div>
+        )}
+        
+        {/* Display food info if available */}
+        {cityData?.food && (
+          <div className="mt-6 p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
+            <h3 className="text-2xl font-bold text-accent-blue mb-3">Gastronomía local</h3>
+            <p className="text-light-blue">{getFoodDescription()}</p>
+          </div>
+        )}
       </section>
 
       {/* Flight section with decorative elements */}
@@ -480,12 +592,12 @@ export default function Plans() {
         </div>
       </section>
 
-      {/* Call to action */}
-      <section className="py-12 bg-accent-blue/20 backdrop-blur-sm">
-        <div className="container mx-auto px-4 md:px-8 text-center">
+      {/* Call to action section - Updated to use destination */}
+      <section className="bg-deep-blue/70 py-16 backdrop-blur-sm">
+        <div className="container mx-auto px-4 text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">¿Listo para reservar tu aventura?</h2>
           <p className="text-light-blue max-w-2xl mx-auto mb-8">
-            Reserva hoy mismo y asegura las mejores tarifas para tu viaje a {destino || "Playa del Carmen"}.
+            Reserva hoy mismo y asegura las mejores tarifas para tu viaje a {destino || "tu destino"}.
             Nuestra garantía de precio te asegura la mejor experiencia al mejor costo.
           </p>
           

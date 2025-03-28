@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "@remix-run/react";
 import { LinksFunction } from "@remix-run/node";
 import { useDestino } from "~/services/destinationService";
+import { apiClient } from "~/services/profileService";
 
 export const links: LinksFunction = () => [
   {
@@ -16,7 +17,7 @@ export const links: LinksFunction = () => [
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { updateUserInfo, updateAvatar } = useDestino();
+  const { updateUserInfo, updateAvatar, updateUserId } = useDestino();
   
   const [slideIndex, setSlideIndex] = useState(1);
   const [nombre, setNombre] = useState("");
@@ -25,6 +26,8 @@ export default function Profile() {
   const [controlBoton, setControlBoton] = useState(true);
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [isNameFocused, setIsNameFocused] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const slidesRef = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<HTMLDivElement>(null);
@@ -107,15 +110,35 @@ export default function Profile() {
     }
   };
 
-  const datosUsuario = () => {
-    // Update the service with form data
-    updateUserInfo(nombre, correo);
-
-    // Set avatar based on slide index
-    updateAvatar(avatars[slideIndex - 1]);
-
-    // Navigate to cards page
-    navigate("/cards");
+  const datosUsuario = async () => {
+    try {
+      // Indicar que estamos procesando el envío
+      setIsSubmitting(true);
+      setError(null);
+      
+      // Crear usuario en el backend
+      const userData = {
+        full_name: nombre,
+        email: correo
+      };
+      
+      // Llamada a la API para crear el usuario
+      const newUser = await apiClient.createUser(userData);
+      
+      // Actualizar el estado local con los datos del usuario
+      updateUserInfo(nombre, correo);
+      updateAvatar(avatars[slideIndex - 1]);
+      updateUserId(newUser.id); // Guardamos el ID del usuario devuelto por el backend
+      
+      // Navegar a la página de tarjetas
+      navigate("/cards");
+    } catch (err) {
+      console.error("Error al crear usuario:", err);
+      setError("No se pudo crear el usuario. Por favor, inténtalo de nuevo.");
+    } finally {
+      // Finalizar el estado de envío
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -193,6 +216,13 @@ export default function Profile() {
                 Tus datos
               </h3>
               
+              {/* Mostrar mensaje de error si existe */}
+              {error && (
+                <div className="bg-red-500/80 text-white p-3 rounded-lg mb-4 text-center">
+                  {error}
+                </div>
+              )}
+              
               {/* Form with modern styling */}
               <div className="flex flex-col gap-6 flex-grow">
                 <div className="relative">
@@ -204,6 +234,7 @@ export default function Profile() {
                     onChange={verificarNomb}
                     onFocus={() => setIsNameFocused(true)}
                     onBlur={() => setIsNameFocused(false)}
+                    disabled={isSubmitting}
                   />
                   {!nombre && isNameFocused && (
                     <p className="text-red-400 mt-1 text-sm">Por favor, escribe tu nombre</p>
@@ -219,6 +250,7 @@ export default function Profile() {
                     onChange={verificarCorreo}
                     onFocus={() => setIsEmailFocused(true)}
                     onBlur={() => setIsEmailFocused(false)}
+                    disabled={isSubmitting}
                   />
                   {estadoCorreo && isEmailFocused && (
                     <p className="text-red-400 mt-1 text-sm">{estadoCorreo}</p>
@@ -228,13 +260,22 @@ export default function Profile() {
                 <div className="flex-grow flex items-end mt-4">
                   <button
                     className={`w-full bg-accent-blue text-white py-4 px-6 rounded-lg font-bold text-lg shadow-lg transition-all duration-300 
-                      ${controlBoton ? 'opacity-60 cursor-not-allowed' : 'hover:bg-light-blue hover:text-deep-blue transform hover:scale-[1.02]'}`}
+                      ${(controlBoton || isSubmitting) ? 'opacity-60 cursor-not-allowed' : 'hover:bg-light-blue hover:text-deep-blue transform hover:scale-[1.02]'}`}
                     type="button"
                     onClick={datosUsuario}
-                    disabled={controlBoton}
+                    disabled={controlBoton || isSubmitting}
                   >
-                    <i className="fas fa-paper-plane mr-2"></i>
-                    ¡Próxima aventura!
+                    {isSubmitting ? (
+                      <>
+                        <i className="fas fa-circle-notch fa-spin mr-2"></i>
+                        Procesando...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-paper-plane mr-2"></i>
+                        ¡Próxima aventura!
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

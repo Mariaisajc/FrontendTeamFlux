@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Link } from "@remix-run/react";
 import { LinksFunction } from "@remix-run/node";
 import { useDestino } from "~/services/destinationService";
+import { cityClient } from "~/services/cityService";
+import { City } from "~/services/Interfaces";
 
 // Add keyframe animation that Tailwind doesn't provide
 export const links: LinksFunction = () => [
@@ -12,158 +14,151 @@ export const links: LinksFunction = () => [
 ];
 
 export default function Destino() {
-  const { state, updateSrcImages } = useDestino();
-  const [america, setAmerica] = useState<string>("");
-  const [europa, setEuropa] = useState<string>("");
-  const [srcA, setSrcA] = useState<string>("");
-  const [srcE, setSrcE] = useState<string>("");
-  const [datosA, setDatosA] = useState<string[]>([]);
-  const [datosE, setDatosE] = useState<string[]>([]);
-  const [control, setControl] = useState<boolean>(true);
+  const { state } = useDestino();
+  const [americaCity, setAmericaCity] = useState<City | null>(null);
+  const [europeCity, setEuropeCity] = useState<City | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Initialize from service
+  // Fetch city data when component mounts
   useEffect(() => {
-    actualizarDestino();
-  }, []);
+    const fetchCities = async () => {
+      if (!state.destinoA || !state.destinoE) {
+        console.warn("Missing destinations in state:", state);
+        setError("No se han seleccionado destinos.");
+        setLoading(false);
+        return;
+      }
 
-  const actualizarDestino = () => {
-    switch (state.destinoA) {
-      case "Playa del Carmen":
-        setAmerica(state.destinoA);
-        setEuropa(state.destinoE);
-        setSrcA("/img/PlayaDelCarmen.jpg");
-        setSrcE("/img/Santorini.jpg");
-        setDatosA(["México", "Español", "Chichén-Itzá", "Salbutes"]);
-        setDatosE(["Grecia", "Griego", "Oia", "Hummus de Fava"]);
-        break;
-      case "Tulum":
-        setAmerica(state.destinoA);
-        setEuropa(state.destinoE);
-        setSrcA("/img/Tulum.jpg");
-        setSrcE("/img/ibiza.jpg");
-        setDatosA(["México", "Español", "Cenote Calavera", "Ceviche de Pescado"]);
-        setDatosE(["España", "Castellano/Catalán", "Islote Es Vedrá", "Sofrit pagès"]);
-        break;
-      case "Honolulu":
-        setAmerica(state.destinoA);
-        setEuropa(state.destinoE);
-        setSrcA("/img/Honolulu.jpg");
-        setSrcE("/img/Malta.jpg");
-        setDatosA(["Hawái", "Ingles/Hawaiano", "Playa Hapuna", "Saimin"]);
-        setDatosE(["Malta", "Ingles/Maltés", "La Valeta", "Aljotta"]);
-        break;
-      case "Cartagena":
-        setAmerica(state.destinoA);
-        setEuropa(state.destinoE);
-        setSrcA("/img/cartagena.jpg");
-        setSrcE("/img/Barcelona.jpg");
-        setDatosA(["Colombia", "Español", "Castillo San Felipe", "Cazuela de Mariscos"]);
-        setDatosE(["España", "Castellano/Catalán", "Sagrada Familia", "Pa amb tomàquet"]);
-        break;
-      case "Bora Bora":
-        setControl(false);
-        setAmerica(state.destinoA);
-        setEuropa(state.destinoE);
-        setSrcA("/img/BoraBora.jpg");
-        setSrcE("/img/dubai.jpg");
-        setDatosA(["Polinesia Francesa", "Francés", "Otemanu", "Roulottes"]);
-        setDatosE(["Emiratos Árabes", "Árabe", "Burj Al Arab", "El Mezze"]);
-        break;
-      case "Río de Janeiro":
-        setAmerica(state.destinoA);
-        setEuropa(state.destinoE);
-        setSrcA("/img/RioDeJaneiro.jpg");
-        setSrcE("/img/lisboa.jpg");
-        setDatosA(["Brasil", "Portugués", "Cristo Redentor", "Feijoada"]);
-        setDatosE(["Portugal", "Portugués", "Tranvía 28", "Pasteles de Belem"]);
-        break;
-      case "Nueva York":
-        setAmerica(state.destinoA);
-        setEuropa(state.destinoE);
-        setSrcA("/img/NuevaYork.jpg");
-        setSrcE("/img/paris.jpg");
-        setDatosA(["EE.UU", "Inglés", "Central Park", "Pizza"]);
-        setDatosE(["Francia", "Frances", "Torre Eiffel", "Foie gra"]);
-        break;
-      default:
-        setSrcA("/img/tiera.png"); // Default image
-        setSrcE("/img/tiera.png"); // Default image
-        break;
-    }
+      console.log("Fetching cities for:", state.destinoA, state.destinoE);
+      
+      setLoading(true);
+      try {
+        // Fetch both cities in parallel
+        const [americaData, europeData] = await Promise.all([
+          cityClient.getCityByName(state.destinoA),
+          cityClient.getCityByName(state.destinoE)
+        ]);
+        
+        console.log("Fetched city data successfully:", 
+                    americaData.description, europeData.description);
+        
+        setAmericaCity(americaData);
+        setEuropeCity(europeData);
+      } catch (err: any) {
+        console.error("Error fetching city data:", err);
+        setError(`Error al cargar datos de destinos: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Update the service with image paths
-    updateSrcImages(srcA, srcE);
-  };
+    fetchCities();
+  }, [state.destinoA, state.destinoE]);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen w-full bg-gradient-to-b from-deep-blue to-deep-blue/90 py-12 px-4 font-sans">
+        <div className="container mx-auto text-center">
+          <h1 className="text-4xl font-bold text-white mb-8">Cargando destinos...</h1>
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent-blue mx-auto"></div>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen w-full bg-gradient-to-b from-deep-blue to-deep-blue/90 py-12 px-4 font-sans">
+        <div className="container mx-auto text-center">
+          <h1 className="text-4xl font-bold text-white mb-8">Error</h1>
+          <p className="text-red-300 text-xl">{error}</p>
+          <Link to="/cards" className="mt-8 inline-block px-6 py-3 rounded-full bg-accent-blue text-white font-medium hover:bg-deep-blue transition-colors duration-300">
+            Volver a intentar
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  // If we have image paths from the service, use those instead 
+  // This ensures we use the correct images even if the fetch didn't work
+  const americaImage = state.srcA || (americaCity?.imagePath || "/img/tiera.png");
+  const europeImage = state.srcE || (europeCity?.imagePath || "/img/tiera.png");
 
   return (
-    <main className="min-h-screen w-full bg-deep-blue font-sans px-4 py-8 md:py-12">
-      {/* Header with animated underline */}
-      <div className="mb-8">
+    <main className="min-h-screen w-full bg-gradient-to-b from-deep-blue to-deep-blue/90 py-12 px-4 font-sans">
+      <div className="container mx-auto text-center mb-12">
         <h1 className="text-3xl md:text-4xl font-bold text-white text-center relative inline-block left-1/2 transform -translate-x-1/2">
           Tus Destinos
           <span className="block h-1 bg-accent-blue mt-2 w-0 group-hover:w-full transition-all duration-300 animate-[grow_1s_ease-out_forwards]"></span>
         </h1>
-        
-        {!control && (
-          <h3 className="text-lg text-white text-center mt-4 max-w-3xl mx-auto">
-            Tus gustos son bastante exóticos, te sugerimos los siguientes lugares:
-          </h3>
-        )}
+
+        <h3 className="text-lg text-white text-center mt-4 max-w-3xl mx-auto">
+          Tus gustos son bastante exóticos, te sugerimos los siguientes lugares:
+        </h3>
       </div>
 
       {/* Responsive destinations container */}
       <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 md:gap-10 px-4">
         {/* America Destination Card */}
-        <DestinationCard
-          title="Aventura en América"
-          destination={america}
-          imageSrc={srcA}
-          data={datosA}
-        />
+        {americaCity && (
+          <DestinationCard
+            title="Aventura en América"
+            destination={americaCity.description}
+            imageSrc={americaImage}
+            data={[
+              americaCity.country,
+              americaCity.language,
+              americaCity.attraction,
+              americaCity.food
+            ]}
+          />
+        )}
 
         {/* Europe Destination Card */}
-        <DestinationCard
-          title="Aventura en Europa"
-          destination={europa}
-          imageSrc={srcE}
-          data={datosE}
-        />
+        {europeCity && (
+          <DestinationCard
+            title="Aventura en Europa"
+            destination={europeCity.description}
+            imageSrc={europeImage}
+            data={[
+              europeCity.country,
+              europeCity.language,
+              europeCity.attraction,
+              europeCity.food
+            ]}
+          />
+        )}
       </div>
     </main>
   );
 }
 
 // Reusable destination card component for better structure
-function DestinationCard({ title, destination, imageSrc, data }: { 
+function DestinationCard({ title, destination, imageSrc, data }: {
   title: string;
   destination: string;
   imageSrc: string;
   data: string[];
 }) {
   return (
-    <section className="w-full lg:w-1/2 bg-white rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-[1.02] group">
-      {/* Card header with gradient background */}
-      <div className="bg-gradient-to-r from-deep-blue to-accent-blue p-4 text-center">
-        <h2 className="font-bold text-xl text-white">{title}</h2>
+    <div className="flex-1 bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden shadow-md group hover:shadow-accent-blue/30 transition-all duration-500">
+      {/* Card Header with destination name */}
+      <div className="p-4 text-center border-b border-white/20">
+        <h2 className="text-2xl font-bold text-white">{title}</h2>
+        <p className="text-accent-blue text-lg">{destination}</p>
       </div>
-      
-      {/* Destination name with animated reveal */}
-      <div className="bg-light-blue p-3 text-center">
-        <h3 className="text-2xl font-bold text-deep-blue focus-in-expand">
-          {destination}
-        </h3>
-      </div>
-      
-      {/* Image container with hover effect */}
-      <div className="relative aspect-[4/3] overflow-hidden">
-        {/* Main image */}
+
+      {/* Main destination image with hover effect */}
+      <div className="relative h-80 overflow-hidden">
         <img
-          src={imageSrc}
+          src={imageSrc || "/img/tiera.png"}
           alt={`Destino en ${title}`}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        
-        {/* Info overlay that slides up on hover */}
+
+        {/* Overlay with destination info */}
         <div className="absolute inset-x-0 bottom-0 h-0 bg-gradient-to-t from-deep-blue to-deep-blue/80 backdrop-blur-sm transition-all duration-500 ease-in-out group-hover:h-full overflow-y-auto">
           <div className="h-full flex flex-col justify-center p-6">
             <div className="grid grid-cols-[1fr_2fr] gap-3 text-white">
@@ -173,26 +168,22 @@ function DestinationCard({ title, destination, imageSrc, data }: {
               <p className="font-semibold text-light-blue">Idioma:</p>
               <p className="text-white">{data[1]}</p>
               
-              <p className="font-semibold text-light-blue">Lugar Imperdible:</p>
+              <p className="font-semibold text-light-blue">Atracción:</p>
               <p className="text-white">{data[2]}</p>
               
-              <p className="font-semibold text-light-blue">Comida típica:</p>
+              <p className="font-semibold text-light-blue">Comida:</p>
               <p className="text-white">{data[3]}</p>
             </div>
           </div>
         </div>
       </div>
-      
-      {/* Action footer */}
-      <div className="bg-light-blue p-4 flex justify-center items-center">
-        <Link 
-          to="/plans" 
-          className="flex items-center gap-2 bg-accent-blue hover:bg-deep-blue text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-xl transform hover:scale-105"
-        >
-          <img src="/img/paquete.png" alt="Paquete de viajes" className="w-6 h-6" />
-          <span>Ver Opciones de Viaje</span>
+
+      {/* Card footer with action button - Updated to pass destination */}
+      <div className="p-4 flex justify-center">
+        <Link to={`/plans?destination=${encodeURIComponent(destination)}`} className="px-6 py-2 rounded-full bg-accent-blue text-white font-medium hover:bg-blue-600 transition-colors">
+          Ver planes disponibles
         </Link>
       </div>
-    </section>
+    </div>
   );
 }

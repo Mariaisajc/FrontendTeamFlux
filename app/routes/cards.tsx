@@ -2,8 +2,12 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "@remix-run/react";
 import { LinksFunction } from "@remix-run/node";
 import { useDestino } from "~/services/destinationService";
+import { questionClient } from "~/services/questionService";
 
-// Add keyframe animations that Tailwind doesn't provide
+// Importación de interfaces
+import { Question, QuestionOption } from "~/services/Interfaces";
+
+// Links para estilos
 export const links: LinksFunction = () => [
   {
     rel: "stylesheet",
@@ -15,17 +19,38 @@ export const links: LinksFunction = () => [
   },
 ];
 
+// Imagen por defecto cuando no hay imagen disponible o hay error al cargar
+const DEFAULT_IMAGE = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB4PSIyIiB5PSIyIiB3aWR0aD0iMjk2IiBoZWlnaHQ9IjI5NiIgc3R5bGU9ImZpbGw6IzFhMWE1MDtzdHJva2U6IzRjOGRmZjtzdHJva2Utd2lkdGg6NDsiIC8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMThweCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIj5JbWFnZW4gbm8gZGlzcG9uaWJsZTwvdGV4dD48L3N2Zz4=";
+
 export default function Cards() {
   const navigate = useNavigate();
   const { state, updateIndice, addRespuesta, removeLastRespuesta, clearRespuestas } = useDestino();
 
+  // Estados base
   const [indice, setIndice] = useState(state.indice);
-  const [opcSelect, setOpcSelect] = useState("");
-  const [disSig, setDisSig] = useState(true);
-  const [disAtras, setDisAtras] = useState(true);
-  const [hidSig, setHidSig] = useState(false);
-  const [calcular, setCalcular] = useState(true);
-  const [backgroundImage, setBackgroundImage] = useState("");
+  const [uiState, setUiState] = useState({
+    pregunta: "",
+    opcSelect: "",
+    disSig: true,
+    disAtras: true,
+    hidSig: false,
+    calcular: true,
+    backgroundImage: ""
+  });
+
+  const [cardContent, setCardContent] = useState({
+    title1: "", title2: "", title3: "",
+    opcion1: "", opcion2: "", opcion3: "",
+    img1: "", img2: "", img3: "",
+    dato1: "", dato2: "", dato3: ""
+  });
+
+  // Estados para datos de la API
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [allOptions, setAllOptions] = useState<QuestionOption[]>([]);
+  const [currentOptions, setCurrentOptions] = useState<QuestionOption[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Navigation indicators
   const [t0, setT0] = useState("contador");
@@ -38,200 +63,251 @@ export default function Cards() {
   // User info from service
   const nombre = state.nombreS || "Usuario";
   const avatar = state.avatar || "/img/img-avatar/ava11.png";
+  const userId = state.userId;
 
-  // Questions and options data
-  const preguntaA = [
-    "¿Que tipo de entorno prefieres para tus vacaciones?",
-    "¿Qué clima prefieres durante tus vacaciones?",
-    "¿Qué tipo de actividades prefieres hacer durante tus vacaciones?",
-    "¿Qué tipo de alojamiento prefieres?",
-    "¿Cuánto tiemplo planeas quedarte de vacaciones?",
-    "¿Cuál es tu rango de edad?",
-  ];
+  // Cargar preguntas y opciones desde la API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-  const opcionesA = [
-    ["Playa", "Montaña", "Ciudad"],
-    ["Caluroso", "Templado", "Frío"],
-    ["Deportes y Aventuras", "Cultura y Museos", "Relax y Bienestar"],
-    ["Hotel de Lujo", "Hostal o Albergue", "Airbnb"],
-    ["Menos de una semana", "1-2 semanas", "Más de dos semanas"],
-    ["Menos de 30 años", "30-50 años", "Más de 50 años"],
-  ];
+        // Obtener todas las preguntas
+        const questionsData = await questionClient.getQuestions();
+        if (questionsData?.length > 0) {
+          setQuestions(questionsData);
 
-  // Updated image paths to ensure they're pointing to the right location
-  const imgUrl = [
-    ["/img/imagen1.jpg", "/img/imagen2.jpg", "/img/imagen3.jpg"],
-    ["/img/Tulum.jpg", "/img/Templado.jpg", "/img/Frio.jpg"],
-    ["/img/Aventura.jpg", "/img/cultura.jpg", "/img/relax.jpg"],
-    ["/img/hotelujo.jpg", "/img/hostal.jpg", "/img/airbnb.jpg"],
-    ["/img/findesemana.jpg", "/img/dosemanas.jpg", "/img/calendario.jpg"],
-    ["/img/veinte.jpg", "/img/treinta.jpg", "/img/cincuenta.jpg"],
-  ];
+          // Obtener todas las opciones
+          const optionsData = await questionClient.getAllOptions();
+          setAllOptions(optionsData);
+        } else {
+          throw new Error("No se encontraron preguntas en la base de datos");
+        }
 
-  const dato = [
-    [
-      "Las playas no siempre son doradas?. Hay playas con arena negra volcánica, rosa coralina y hasta verde olivo. ¡Cada grano de arena cuenta una historia!",
-      "Las montañas tienen su propio clima?. Al subir una montaña, puedes experimentar diferentes climas en pocos kilómetros. ¡Es como viajar por el mundo sin salir de una misma montaña!",
-      "Muchas ciudades tienen secretos subterráneos?. Bajo las calles de muchas ciudades se encuentran redes de túneles, ríos subterráneos y hasta antiguas ruinas. París, por ejemplo, tiene más de 200 kilómetros de túneles subterráneos.",
-    ],
-    [
-      "En muchos lugares con clima cálido se celebran festivales y eventos al aire libre, aprovechando las altas temperaturas.",
-      "Muchas de las rutas turísticas más famosas del mundo se encuentran en regiones con clima templado, como la Ruta de la Costa Amalfitana en Italia o la Ruta 66 en Estados Unidos.",
-      "En lugares con clima frío, el turismo se concentra principalmente en los meses de invierno, cuando la nieve cubre el paisaje y se pueden practicar deportes como el esquí, el snowboard y el patinaje sobre hielo.",
-    ],
-    [
-      "Desde las montañas de Nepal hasta los ríos de Costa Rica, existen numerosos destinos que ofrecen experiencias únicas para los amantes de la adrenalina.",
-      "Al visitar los museos, los viajeros pueden imaginar cómo era la vida en la corte real y apreciar la arquitectura y el diseño de una época pasada.",
-      "Al visitar un baño termal, los viajeros pueden conectar con las tradiciones de culturas antiguas y experimentar una forma de relajación que ha sido practicada durante siglos.",
-    ],
-    [
-      "Algunos de los hoteles más lujosos del mundo ofrecen experiencias tan exclusivas que incluyen la posibilidad de tener un mayordomo que se encargue de todos tus caprichos, desde preparar un baño relajante hasta hacer reservas en el restaurante más exclusivo.",
-      "Muchos de los hostales y albergues más populares del mundo se encuentran ubicados en edificios históricos o con una arquitectura única.",
-      "Airbnb o apartamento: Airbnb nació de una necesidad de alojamiento económico durante un evento en San Francisco.",
-    ],
-    [
-      "Estudios han demostrado que incluso viajes cortos pueden tener un impacto significativo en la reducción del estrés y la mejora del estado de ánimo.",
-      "Estudios han demostrado que este rango de tiempo permite sumergirte en la cultura local, conocer a fondo un lugar y crear recuerdos duraderos sin sentirte apresurado o abrumado.",
-      "Viajes prolongados te permiten desconectar completamente de tu rutina diaria y volver a casa sintiéndote renovado y con una nueva perspectiva de la vida.",
-    ],
-    [
-      "Viajar en la veintena te ayuda a desarrollar habilidades como la independencia, la adaptabilidad y la tolerancia a la incertidumbre, lo cual es fundamental para tu crecimiento personal.",
-      "A menudo, se busca ir más allá de los destinos turísticos más populares y descubrir lugares menos conocidos, con una mayor conexión con la cultura local.",
-      "Muchos viajeros mayores se unen a grupos organizados para conocer a personas con intereses similares y compartir experiencias.",
-    ],
-  ];
+      } catch (err: any) {
+        console.error("Error al cargar datos:", err);
+        setError(`Error al cargar las preguntas: ${err.message}`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // Current question data
-  const [pregunta, setPregunta] = useState(preguntaA[indice]);
-  const [opcion1, setOpcion1] = useState(opcionesA[indice][0]);
-  const [opcion2, setOpcion2] = useState(opcionesA[indice][1]);
-  const [opcion3, setOpcion3] = useState(opcionesA[indice][2]);
-  const [img1, setImg1] = useState(imgUrl[indice][0]);
-  const [img2, setImg2] = useState(imgUrl[indice][1]);
-  const [img3, setImg3] = useState(imgUrl[indice][2]);
-  const [dato1, setDato1] = useState(dato[indice][0]);
-  const [dato2, setDato2] = useState(dato[indice][1]);
-  const [dato3, setDato3] = useState(dato[indice][2]);
+    fetchData();
+  }, []);
+
+  // Actualizar la pregunta y opciones cuando cambia el índice o cuando se cargan los datos
+  useEffect(() => {
+    if (!isLoading && questions.length > 0) {
+      updateCurrentQuestionAndOptions();
+    }
+  }, [indice, isLoading, questions, allOptions]);
+
+  // Función para actualizar la pregunta y opciones actuales
+  const updateCurrentQuestionAndOptions = () => {
+    // Asegurarse de que hay preguntas disponibles y que el índice es válido
+    if (questions.length === 0 || indice >= questions.length) {
+      return;
+    }
+
+    // Obtener la pregunta actual   
+    const currentQuestion = questions[indice];
+
+    setUiState(prev => ({ ...prev, pregunta: currentQuestion.question_text }));
+
+    // Filtrar las opciones para esta pregunta - ACTUALIZADO para el nuevo formato
+    const options = allOptions.filter(
+      option => option.questionId === currentQuestion.id
+    );
+
+    setCurrentOptions(options);
+
+    // Si tenemos al menos 3 opciones, actualizar los estados
+    if (options.length >= 3) {
+      // Títulos (nuevo campo)
+      setCardContent(prevState => ({
+        ...prevState,
+        title1: options[0].title || "",
+        title2: options[1].title || "",
+        title3: options[2].title || "",
+        opcion1: options[0].title || "",
+        opcion2: options[1].title || "",
+        opcion3: options[2].title || "",
+        dato1: options[0].description || "Información no disponible",
+        dato2: options[1].description || "Información no disponible",
+        dato3: options[2].description || "Información no disponible",
+        img1: options[0].image || DEFAULT_IMAGE,
+        img2: options[1].image || DEFAULT_IMAGE,
+        img3: options[2].image || DEFAULT_IMAGE
+      }));
+    } else {
+      console.warn(`La pregunta con ID ${currentQuestion.id} tiene menos de 3 opciones`);
+    }
+
+    verificarSeleccion();
+  };
 
   // Initialize from context state
   useEffect(() => {
     setIndice(state.indice);
 
     if (state.indice > 0) {
-      setDisAtras(false);
+      setUiState(prevState => ({
+        ...prevState,
+        disAtras: false
+      }));
     }
   }, [state.indice]);
 
-  // Update indicator states when index changes
-  useEffect(() => {
-    verificarSeleccion();
-
-    // Update current question data when index changes
-    setPregunta(preguntaA[indice]);
-    setOpcion1(opcionesA[indice][0]);
-    setOpcion2(opcionesA[indice][1]);
-    setOpcion3(opcionesA[indice][2]);
-    setImg1(imgUrl[indice][0]);
-    setImg2(imgUrl[indice][1]);
-    setImg3(imgUrl[indice][2]);
-    setDato1(dato[indice][0]);
-    setDato2(dato[indice][1]);
-    setDato3(dato[indice][2]);
-  }, [indice, preguntaA, opcionesA, imgUrl, dato]);
-
   useEffect(() => {
     // Set background image when an option is selected
-    if (opcSelect === opcion1 && img1) {
-      setBackgroundImage(img1);
-    } else if (opcSelect === opcion2 && img2) {
-      setBackgroundImage(img2);
-    } else if (opcSelect === opcion3 && img3) {
-      setBackgroundImage(img3);
+    if (uiState.opcSelect === cardContent.opcion1 && cardContent.img1) {
+      setUiState(prevState => ({
+        ...prevState,
+        backgroundImage: cardContent.img1
+      }));
+    } else if (uiState.opcSelect === cardContent.opcion2 && cardContent.img2) {
+      setUiState(prevState => ({
+        ...prevState,
+        backgroundImage: cardContent.img2
+      }));
+    } else if (uiState.opcSelect === cardContent.opcion3 && cardContent.img3) {
+      setUiState(prevState => ({
+        ...prevState,
+        backgroundImage: cardContent.img3
+      }));
     }
-  }, [opcSelect, img1, img2, img3, opcion1, opcion2, opcion3]);
+  }, [uiState.opcSelect, cardContent]);
 
   const verificarSeleccion = () => {
-    if (opcSelect !== "") {
-      setDisSig(false);
+    if (uiState.opcSelect !== "") {
+      setUiState(prevState => ({
+        ...prevState,
+        disSig: false
+      }));
+    } else {
+      setUiState(prevState => ({
+        ...prevState,
+        disSig: true
+      }));
     }
 
     if (indice === 0) {
-      setDisAtras(true);
+      setUiState(prevState => ({
+        ...prevState,
+        disAtras: true
+      }));
+    } else {
+      setUiState(prevState => ({
+        ...prevState,
+        disAtras: false
+      }));
     }
 
     // Update navigation indicators
-    if (indice >= 0) {
-      setT0("contadorOn");
-    }
-    if (indice >= 1) {
-      setT1("contadorOn");
-    }
-    if (indice >= 2) {
-      setT2("contadorOn");
-    }
-    if (indice >= 3) {
-      setT3("contadorOn");
-    }
-    if (indice >= 4) {
-      setT4("contadorOn");
-    }
-    if (indice >= 5) {
-      setT5("contadorOn");
-    }
+    if (indice >= 0) setT0("contadorOn");
+    if (indice >= 1) setT1("contadorOn");
+    if (indice >= 2) setT2("contadorOn");
+    if (indice >= 3) setT3("contadorOn");
+    if (indice >= 4) setT4("contadorOn");
+    if (indice >= 5) setT5("contadorOn");
   };
 
   const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setOpcSelect(event.target.value);
-    setDisSig(false);
+    setUiState(prevState => ({
+      ...prevState,
+      opcSelect: event.target.value,
+      disSig: false
+    }));
   };
 
-  const siguiente = () => {
-    if (indice === 5) {
-      addRespuesta(opcSelect);
-      console.log(state.respuestasSer);
-      setHidSig(true);
-      setCalcular(false);
-      setDisAtras(false);
+  // Función para manejar errores de imágenes
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = DEFAULT_IMAGE;
+  };
+
+  // Función para guardar la respuesta en el backend
+  const saveAnswerToBackend = async (questionId: number, optionId: number) => {
+    if (!userId) {
+      console.warn("No se puede guardar la respuesta: ID de usuario no disponible");
       return;
-    } else {
-      setHidSig(false);
     }
 
-    addRespuesta(opcSelect);
-    console.log(state.respuestasSer);
+    try {
+      await questionClient.saveAnswer({
+        user_id: userId,
+        question_id: questionId,
+        question_option_id: optionId
+      });
+      console.log(`Respuesta guardada: pregunta ${questionId}, opción ${optionId}`);
+    } catch (err) {
+      console.error("Error al guardar respuesta en el servidor:", err);
+      // Continuamos aunque falle el guardado en el backend
+    }
+  };
+
+  const getSelectedOptionId = (): number | null => {
+    // Encontrar la opción seleccionada
+    const option = currentOptions.find(opt => opt.title === uiState.opcSelect);
+    return option ? option.id : null;
+  };
+
+  const siguiente = async () => {
+    const currentQuestion = questions[indice];
+    const optionId = getSelectedOptionId();
+
+    // Solo guardamos si tenemos tanto el ID de la pregunta como el de la opción
+    if (currentQuestion && optionId) {
+      await saveAnswerToBackend(currentQuestion.id, optionId);
+    }
+
+    // La última pregunta
+    const isLastQuestion = indice === questions.length - 1 || indice === 5;
+
+    if (isLastQuestion) {
+      addRespuesta(uiState.opcSelect);
+      setUiState(prevState => ({
+        ...prevState,
+        hidSig: true,
+        calcular: false,
+        disAtras: false
+      }));
+      return;
+    }
+
+    addRespuesta(uiState.opcSelect);
 
     const newIndice = indice + 1;
     setIndice(newIndice);
     updateIndice(newIndice);
 
-    setOpcSelect("");
-    setDisSig(true);
-    setDisAtras(false);
-    setBackgroundImage("");
+    setUiState(prevState => ({
+      ...prevState,
+      opcSelect: "",
+      disSig: true,
+      backgroundImage: ""
+    }));
   };
+
+
 
   const atras = () => {
     if (indice === 0) {
-      removeLastRespuesta();
-      setDisAtras(true);
       return;
     }
 
-    if (indice === 5) {
-      removeLastRespuesta();
-    }
-
     removeLastRespuesta();
-    console.log(state.respuestasSer);
 
     const newIndice = indice - 1;
     setIndice(newIndice);
     updateIndice(newIndice);
 
-    setOpcSelect("");
-    setHidSig(false);
-    setCalcular(true);
-    setBackgroundImage("");
+    setUiState(prevState => ({
+      ...prevState,
+      opcSelect: "",
+      hidSig: false,
+      calcular: true,
+      backgroundImage: ""
+    }));
 
     // Reset navigation indicators
     resetIndicators(newIndice);
@@ -248,7 +324,7 @@ export default function Cards() {
 
   const regresarPerfil = () => {
     const confirmar = window.confirm(
-      "¿Desea crear un nuevo perfir y restablecer las opciones seleccionadas?"
+      "¿Desea crear un nuevo perfil y restablecer las opciones seleccionadas?"
     );
 
     if (confirmar) {
@@ -259,30 +335,84 @@ export default function Cards() {
   };
 
   const getBackgroundOpacity = () => {
-    // Valores de opacidad mucho más bajos para mostrar más la imagen
-    if (!opcSelect) return { start: 0.5, end: 0.6 }; // Opacidad por defecto reducida
+    if (!uiState.opcSelect) return { start: 0.5, end: 0.6 };
 
-    if (opcSelect === opcion1) return { start: 0.3, end: 0.4 }; // Mucho menos opaco para opción 1
-    if (opcSelect === opcion2) return { start: 0.35, end: 0.45 }; // Menos opaco para opción 2
-    if (opcSelect === opcion3) return { start: 0.4, end: 0.5 }; // Menos opaco para opción 3
+    if (uiState.opcSelect === cardContent.opcion1) return { start: 0.3, end: 0.4 };
+    if (uiState.opcSelect === cardContent.opcion2) return { start: 0.35, end: 0.45 };
+    if (uiState.opcSelect === cardContent.opcion3) return { start: 0.4, end: 0.5 };
 
-    return { start: 0.5, end: 0.6 }; // Valor por defecto reducido
+    return { start: 0.5, end: 0.6 };
   };
 
   const opacity = getBackgroundOpacity();
+
+  // Si está cargando, mostrar un spinner
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full bg-deep-blue flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-accent-blue border-t-transparent"></div>
+          <p className="mt-4 text-white text-lg">Cargando preguntas...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si hay un error, mostrar un mensaje
+  if (error) {
+    return (
+      <div className="min-h-screen w-full bg-deep-blue flex items-center justify-center p-4">
+        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 max-w-lg w-full">
+          <div className="text-center">
+            <i className="fas fa-exclamation-circle text-red-500 text-4xl mb-4"></i>
+            <h2 className="text-white text-xl font-bold mb-2">¡Ups! Algo salió mal</h2>
+            <p className="text-light-blue mb-6">{error}</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-accent-blue hover:bg-light-blue hover:text-deep-blue text-white py-2 px-4 rounded-lg transition-all"
+              >
+                <i className="fas fa-sync-alt mr-2"></i> Intentar de nuevo
+              </button>
+              <button
+                onClick={() => navigate("/profile")}
+                className="bg-deep-blue border border-accent-blue text-white py-2 px-4 rounded-lg transition-all hover:bg-accent-blue"
+              >
+                <i className="fas fa-user mr-2"></i> Volver al perfil
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // In your option selection handler, add logging to verify the values
+  const handleOptionSelect = (opcion: any) => {
+    console.log(`Selected option: ${opcion} for question at index ${indice}`);
+    
+    // Store your selection
+    setUiState(prev => ({ ...prev, opcSelect: opcion, disSig: false }));
+    
+    // Save the selection in your service
+    const respuesta = opcion;
+    addRespuesta(respuesta);
+    
+    // Log all responses to verify
+    console.log("Current responses in service:", state.respuestasSer);
+  };
 
   return (
     <main
       className="relative w-full min-h-screen p-4 md:p-6 font-sans overflow-x-hidden"
       style={{
-        // Uso de un overlay menos azulado y más neutro/transparente
-        backgroundImage: backgroundImage
-          ? `linear-gradient(rgba(0, 0, 0, ${opacity.start}), rgba(0, 0, 0, ${opacity.end})), url(${backgroundImage})`
+        backgroundImage: uiState.backgroundImage
+          ? `linear-gradient(rgba(0, 0, 0, ${opacity.start}), rgba(0, 0, 0, ${opacity.end})), url(${uiState.backgroundImage})`
           : 'linear-gradient(rgba(0, 8, 53, 0.9), rgba(0, 8, 53, 0.95))',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        backgroundBlendMode: 'normal', // Cambiado de 'overlay' a 'normal' para más claridad
+        backgroundBlendMode: 'normal',
         transition: 'all 0.5s ease-in-out'
       }}
     >
@@ -297,7 +427,7 @@ export default function Cards() {
       {/* Question title with animation */}
       <div className="text-center mb-8">
         <h1 className="text-2xl sm:text-3xl text-white font-bold scale-in-ver-center bg-black/40 backdrop-blur-sm p-5 rounded-lg shadow-lg border border-white/20">
-          {pregunta}
+          {uiState.pregunta}
         </h1>
       </div>
 
@@ -330,14 +460,14 @@ export default function Cards() {
       {/* Cards grid - responsive with proper gap */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-28">
 
-        {/* Card 1 - Fix with explicit heights */}
+        {/* Card 1 */}
         <div className="h-[400px] card-wrapper">
           <input
             id="opc1"
             type="radio"
-            value={opcion1}
+            value={cardContent.opcion1}
             name="opciones"
-            checked={opcSelect === opcion1}
+            checked={uiState.opcSelect === cardContent.opcion1}
             onChange={handleRadioChange}
             className="hidden"
           />
@@ -345,37 +475,31 @@ export default function Cards() {
             htmlFor="opc1"
             className="block h-full w-full cursor-pointer relative"
           >
-            <div className={`h-full w-full rounded-xl overflow-hidden shadow-lg ${opcSelect === opcion1 ? 'ring-4 ring-accent-blue scale-105' : ''} transition-all duration-300 hover:shadow-accent-blue/30 hover:-translate-y-1`}>
-              {/* Card with front/back sides */}
+            <div className={`h-full w-full rounded-xl overflow-hidden shadow-lg ${uiState.opcSelect === cardContent.opcion1 ? 'ring-4 ring-accent-blue scale-105' : ''} transition-all duration-300 hover:shadow-accent-blue/30 hover:-translate-y-1`}>
               <div className="relative h-full w-full">
-                {/* Front side (always visible) */}
                 <div className="absolute inset-0 flex flex-col bg-white/10 backdrop-blur-sm">
-                  {/* Image container */}
                   <div className="relative h-4/5 overflow-hidden">
                     <img
-                      src={img1}
-                      alt={opcion1}
+                      src={cardContent.img1}
+                      alt={cardContent.opcion1}
                       className="w-full h-full object-cover"
+                      onError={handleImageError}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-deep-blue to-transparent opacity-40"></div>
                   </div>
 
-                  {/* Title area */}
                   <div className="p-4 h-1/5 flex-grow bg-gradient-to-b from-deep-blue/80 to-deep-blue flex flex-col justify-between">
-                    <h3 className="text-xl font-bold text-white text-center">{opcion1}</h3>
-
-                    {/* Info text (hidden by default, shown on hover) */}
+                    <h3 className="text-xl font-bold text-white text-center">{cardContent.opcion1}</h3>
                     <div className="text-light-blue/90 text-sm overflow-y-auto flex-grow opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-2">
-                      <p>{dato1}</p>
+                      <p>{cardContent.dato1}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Hover info overlay */}
                 <div className="absolute inset-0 bg-accent-blue/90 flex items-center justify-center p-6 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300">
                   <div className="text-center">
-                    <h3 className="text-xl font-bold text-white mb-4">{opcion1}</h3>
-                    <p className="text-white">{dato1}</p>
+                    <h3 className="text-xl font-bold text-white mb-4">{cardContent.opcion1}</h3>
+                    <p className="text-white">{cardContent.dato1}</p>
                   </div>
                 </div>
               </div>
@@ -383,14 +507,14 @@ export default function Cards() {
           </label>
         </div>
 
-        {/* Card 2 - Fix with explicit heights */}
+        {/* Card 2 */}
         <div className="h-[400px] card-wrapper">
           <input
             id="opc2"
             type="radio"
-            value={opcion2}
+            value={cardContent.opcion2}
             name="opciones"
-            checked={opcSelect === opcion2}
+            checked={uiState.opcSelect === cardContent.opcion2}
             onChange={handleRadioChange}
             className="hidden"
           />
@@ -398,37 +522,31 @@ export default function Cards() {
             htmlFor="opc2"
             className="block h-full w-full cursor-pointer relative"
           >
-            <div className={`h-full w-full rounded-xl overflow-hidden shadow-lg ${opcSelect === opcion2 ? 'ring-4 ring-accent-blue scale-105' : ''} transition-all duration-300 hover:shadow-accent-blue/30 hover:-translate-y-1`}>
-              {/* Card with front/back sides */}
+            <div className={`h-full w-full rounded-xl overflow-hidden shadow-lg ${uiState.opcSelect === cardContent.opcion2 ? 'ring-4 ring-accent-blue scale-105' : ''} transition-all duration-300 hover:shadow-accent-blue/30 hover:-translate-y-1`}>
               <div className="relative h-full w-full">
-                {/* Front side (always visible) */}
                 <div className="absolute inset-0 flex flex-col bg-white/10 backdrop-blur-sm">
-                  {/* Image container */}
                   <div className="relative h-4/5 overflow-hidden">
                     <img
-                      src={img2}
-                      alt={opcion2}
+                      src={cardContent.img2}
+                      alt={cardContent.opcion2}
                       className="w-full h-full object-cover"
+                      onError={handleImageError}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-deep-blue to-transparent opacity-40"></div>
                   </div>
 
-                  {/* Title area */}
                   <div className="p-4 h-1/5 flex-grow bg-gradient-to-b from-deep-blue/80 to-deep-blue flex flex-col justify-between">
-                    <h3 className="text-xl font-bold text-white text-center">{opcion2}</h3>
-
-                    {/* Info text (hidden by default, shown on hover) */}
+                    <h3 className="text-xl font-bold text-white text-center">{cardContent.opcion2}</h3>
                     <div className="text-light-blue/90 text-sm overflow-y-auto flex-grow opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-2">
-                      <p>{dato2}</p>
+                      <p>{cardContent.dato2}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Hover info overlay */}
                 <div className="absolute inset-0 bg-accent-blue/90 flex items-center justify-center p-6 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300">
                   <div className="text-center">
-                    <h3 className="text-xl font-bold text-white mb-4">{opcion2}</h3>
-                    <p className="text-white">{dato2}</p>
+                    <h3 className="text-xl font-bold text-white mb-4">{cardContent.opcion2}</h3>
+                    <p className="text-white">{cardContent.dato2}</p>
                   </div>
                 </div>
               </div>
@@ -436,14 +554,14 @@ export default function Cards() {
           </label>
         </div>
 
-        {/* Card 3 - Fix with explicit heights */}
+        {/* Card 3 */}
         <div className="h-[400px] card-wrapper">
           <input
             id="opc3"
             type="radio"
-            value={opcion3}
+            value={cardContent.opcion3}
             name="opciones"
-            checked={opcSelect === opcion3}
+            checked={uiState.opcSelect === cardContent.opcion3}
             onChange={handleRadioChange}
             className="hidden"
           />
@@ -451,37 +569,31 @@ export default function Cards() {
             htmlFor="opc3"
             className="block h-full w-full cursor-pointer relative"
           >
-            <div className={`h-full w-full rounded-xl overflow-hidden shadow-lg ${opcSelect === opcion3 ? 'ring-4 ring-accent-blue scale-105' : ''} transition-all duration-300 hover:shadow-accent-blue/30 hover:-translate-y-1`}>
-              {/* Card with front/back sides */}
+            <div className={`h-full w-full rounded-xl overflow-hidden shadow-lg ${uiState.opcSelect === cardContent.opcion3 ? 'ring-4 ring-accent-blue scale-105' : ''} transition-all duration-300 hover:shadow-accent-blue/30 hover:-translate-y-1`}>
               <div className="relative h-full w-full">
-                {/* Front side (always visible) */}
                 <div className="absolute inset-0 flex flex-col bg-white/10 backdrop-blur-sm">
-                  {/* Image container */}
                   <div className="relative h-4/5 overflow-hidden">
                     <img
-                      src={img3}
-                      alt={opcion3}
+                      src={cardContent.img3}
+                      alt={cardContent.opcion3}
                       className="w-full h-full object-cover"
+                      onError={handleImageError}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-deep-blue to-transparent opacity-40"></div>
                   </div>
 
-                  {/* Title area */}
                   <div className="p-4 h-1/5 flex-grow bg-gradient-to-b from-deep-blue/80 to-deep-blue flex flex-col justify-between">
-                    <h3 className="text-xl font-bold text-white text-center">{opcion3}</h3>
-
-                    {/* Info text (hidden by default, shown on hover) */}
+                    <h3 className="text-xl font-bold text-white text-center">{cardContent.opcion3}</h3>
                     <div className="text-light-blue/90 text-sm overflow-y-auto flex-grow opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-2">
-                      <p>{dato3}</p>
+                      <p>{cardContent.dato3}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Hover info overlay */}
                 <div className="absolute inset-0 bg-accent-blue/90 flex items-center justify-center p-6 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300">
                   <div className="text-center">
-                    <h3 className="text-xl font-bold text-white mb-4">{opcion3}</h3>
-                    <p className="text-white">{dato3}</p>
+                    <h3 className="text-xl font-bold text-white mb-4">{cardContent.opcion3}</h3>
+                    <p className="text-white">{cardContent.dato3}</p>
                   </div>
                 </div>
               </div>
@@ -496,24 +608,24 @@ export default function Cards() {
           <button
             type="button"
             onClick={atras}
-            disabled={disAtras}
+            disabled={uiState.disAtras}
             className="bg-light-blue text-deep-blue px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-accent-blue hover:text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <i className="fa-solid fa-arrow-left"></i>Atrás
           </button>
 
-          {!hidSig && (
+          {!uiState.hidSig && (
             <button
               type="button"
               onClick={siguiente}
-              disabled={disSig}
+              disabled={uiState.disSig}
               className="bg-accent-blue text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-light-blue hover:text-deep-blue transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
             >
               Siguiente<i className="fa-solid fa-arrow-right"></i>
             </button>
           )}
 
-          {!calcular && (
+          {!uiState.calcular && (
             <Link
               to="/results"
               className="bg-accent-blue text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-light-blue hover:text-deep-blue transition-all duration-300 flex items-center gap-2 animate-pulse"
@@ -523,6 +635,6 @@ export default function Cards() {
           )}
         </div>
       </div>
-    </main>
+    </main >
   );
 }
