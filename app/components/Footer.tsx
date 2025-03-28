@@ -15,7 +15,7 @@ export default function Footer() {
                     </div>
 
                     <div className="text-center md:text-right">
-                        <h3 className="text-black text-lg font-bold mb-1">Aztro Travel</h3>
+                        <h3 className="text-black text-lg font-bold mb-1">Flux Team</h3>
                         <p className="text-black/80 text-sm">Descubre tu destino ideal</p>
                     </div>
                 </div>
