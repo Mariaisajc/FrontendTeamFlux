@@ -15,7 +15,7 @@ export default function Footer() {
                     </div>
 
                     <div className="text-center md:text-right">
-                        <h3 className="text-black text-lg font-bold mb-1">Aztro Travel</h3>
+                        <h3 className="text-black text-lg font-bold mb-1">Flux Team</h3>
                         <p className="text-black/80 text-sm">Descubre tu destino ideal</p>
                     </div>
                 </div>
@@ -38,15 +38,15 @@ export default function Footer() {
                         <ul className="space-y-2 text-black">
                             <li className="flex items-center gap-2">
                                 <i className="fas fa-envelope text-accent-blue"></i>
-                                <a href="mailto:info@aztrotravel.com" className="hover:text-accent-blue transition-colors duration-300">info@aztrotravel.com</a>
+                                <a href="mailto:info@aztrotravel.com" className="hover:text-accent-blue transition-colors duration-300">fluxteam@infoamadeus.com</a>
                             </li>
                             <li className="flex items-center gap-2">
                                 <i className="fas fa-phone text-accent-blue"></i>
-                                <a href="tel:+123456789" className="hover:text-accent-blue transition-colors duration-300">+12 345 6789</a>
+                                <a href="tel:+123456789" className="hover:text-accent-blue transition-colors duration-300">+57 3001235789</a>
                             </li>
                             <li className="flex items-center gap-2">
                                 <i className="fas fa-map-marker-alt text-accent-blue"></i>
-                                <span>Ciudad de México, México</span>
+                                <span>Medellín, Colombia</span>
                             </li>
                         </ul>
                     </div>
@@ -121,7 +121,7 @@ export default function Footer() {
                 {/* Copyright section */}
                 <div className="pt-6 border-t border-black/10 flex flex-col md:flex-row justify-between items-center">
                     <p className="text-black/70 text-sm mb-4 md:mb-0">
-                        &copy; {currentYear} Aztro Travel | Powered by Amadeus. Todos los derechos reservados.
+                        &copy; {currentYear} Flux Team | Powered by Amadeus. Todos los derechos reservados.
                     </p>
 
                     <div className="flex gap-4">
