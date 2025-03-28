@@ -16,8 +16,8 @@ export const apiClient = {
     if (!response.ok) {
       throw new Error(`Failed to create user: ${response.statusText}`);
     }
-    
-    return response.json();
+    const responseData = await response.json(); // Extraer el cuerpo JSON
+  return responseData;
   },
   
   async getUserById(id: number): Promise<User> {

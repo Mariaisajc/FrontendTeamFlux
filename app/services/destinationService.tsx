@@ -63,6 +63,8 @@ export function DestinoProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  
+
   const addRespuesta = (respuesta: string) => {
     setState((prev) => ({
       ...prev,
@@ -99,8 +101,9 @@ export function DestinoProvider({ children }: { children: ReactNode }) {
   };
 
   // Nuevo método para actualizar el userId
-  const updateUserId = (userId: number) => {
-    setState((prev) => ({ ...prev, userId }));
+  const updateUserId = (id: number) => {
+    console.log("Actualizando userId en el contexto:", id);
+    setState((prevState) => ({ ...prevState, userId: id }));
   };
 
   // Memoize the context value to prevent unnecessary re-renders of consumers

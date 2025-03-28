@@ -125,6 +125,7 @@ export default function Profile() {
       // Llamada a la API para crear el usuario
       const newUser = await apiClient.createUser(userData);
       
+      
       // Actualizar el estado local con los datos del usuario
       updateUserInfo(nombre, correo);
       updateAvatar(avatars[slideIndex - 1]);
