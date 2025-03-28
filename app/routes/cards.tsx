@@ -227,18 +227,34 @@ export default function Cards() {
 
   // Función para guardar la respuesta en el backend
   const saveAnswerToBackend = async (questionId: number, optionId: number) => {
+    console.log("Valor de userId:", state.userId);
     if (!userId) {
       console.warn("No se puede guardar la respuesta: ID de usuario no disponible");
       return;
     }
-
+  
+    const body = {
+      id: 0, 
+      userId: userId,
+      questionId: questionId,
+      questionOptionId: optionId,
+      date: new Date().toISOString(), 
+    };
+  
     try {
-      await questionClient.saveAnswer({
-        user_id: userId,
-        question_id: questionId,
-        question_option_id: optionId
+      const response = await fetch("http://localhost:5222/api/Answer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
       });
-      console.log(`Respuesta guardada: pregunta ${questionId}, opción ${optionId}`);
+  
+      if (!response.ok) {
+        throw new Error(`Error en la solicitud: ${response.statusText}`);
+      }
+  
+      console.log(`Respuesta guardada exitosamente: ${JSON.stringify(body)}`);
     } catch (err) {
       console.error("Error al guardar respuesta en el servidor:", err);
       // Continuamos aunque falle el guardado en el backend
