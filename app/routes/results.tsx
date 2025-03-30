@@ -189,7 +189,7 @@ export default function Results() {
       setTimeout(() => {
         // Navigate to destination page to see results
         navigate("/destination");
-      }, 500);
+      }, 6000);
     } catch (err: any) {
       console.error("Error fetching city data:", err);
       setError(`Error al obtener información de destinos: ${err.message}`);
@@ -198,7 +198,7 @@ export default function Results() {
       setTimeout(() => {
         updateDestinos("Tulum", "Santorini");
         navigate("/destination");
-      }, 1000);
+      }, 6000);
     } finally {
       setIsLoading(false);
     }

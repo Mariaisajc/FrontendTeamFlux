@@ -14,7 +14,7 @@ export const links: LinksFunction = () => [
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "Aztro Travel" },
+    { title: "Flux Team" },
     { name: "description", content: "Encuentra tu próximo destino de viaje" },
   ];
 };

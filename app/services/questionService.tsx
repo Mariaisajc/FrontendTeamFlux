@@ -111,7 +111,7 @@ export const questionClient = {
   async getOptionsByQuestionId(questionId: number): Promise<QuestionOption[]> {
     // Este endpoint no está explícitamente mencionado, pero podemos filtrar después de obtener todas
     const allOptions = await this.getAllOptions();
-    return allOptions.filter(option => option.question_id === questionId);
+    return allOptions.filter(option => option.questionId === questionId);
   },
   
   async createOption(option: {
