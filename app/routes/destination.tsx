@@ -89,9 +89,9 @@ export default function Destino() {
   return (
     <main className="min-h-screen w-full bg-gradient-to-b from-deep-blue to-deep-blue/90 py-12 px-4 font-sans">
       <div className="container mx-auto text-center mb-12">
-        <h1 className="text-3xl md:text-4xl font-bold text-white text-center relative inline-block left-1/2 transform -translate-x-1/2">
+      <h1 className="text-3xl md:text-4xl font-bold text-white text-center">
           Tus Destinos
-          <span className="block h-1 bg-accent-blue mt-2 w-0 group-hover:w-full transition-all duration-300 animate-[grow_1s_ease-out_forwards]"></span>
+          <span className="block h-1 bg-accent-blue mt-2 w-full transition-all duration-300 animate-[grow_1s_ease-out_forwards]"></span>
         </h1>
 
         <h3 className="text-lg text-white text-center mt-4 max-w-3xl mx-auto">

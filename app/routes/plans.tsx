@@ -490,7 +490,7 @@ export default function Plans() {
           <div className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden group hover:shadow-accent-blue/20 hover:scale-105 transition-all duration-300">
             <div className="h-48 overflow-hidden relative">
               <img 
-                src="/img/tulum.jpg" 
+                src="/img/ruinas.jpg" 
                 alt="Visita a ruinas" 
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
               />
