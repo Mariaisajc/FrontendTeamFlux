@@ -18,12 +18,12 @@ Antes de ejecutar la aplicación, asegúrate de tener instalados los siguientes 
 **Instalación**
 
 1.	Clona este repositorio en tu computadora:
-2.	git clone https://github.com/tu-usuario/FrontendTeamFlux.git
-3.	Accede al directorio del proyecto:
-4.	cd FrontendTeamFlux
-5.	Instala las dependencias del proyecto:
-o	Si usas npm:
-o	npm install
+	git clone https://github.com/tu-usuario/FrontendTeamFlux.git
+2.	Accede al directorio del proyecto:
+  cd FrontendTeamFlux
+3.	Instala las dependencias del proyecto:
+   	Si usas npm:
+  o	npm install
 
 **Ejecución en modo desarrollo**
 
