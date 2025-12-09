@@ -21,4 +21,13 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://localhost:5222', // o el https de tu API (ver launchSettings.json)
+        changeOrigin: true,
+        secure: false
+      }
+    }
+  }
 });

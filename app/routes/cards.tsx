@@ -28,6 +28,8 @@ export default function Cards() {
 
   // Estados base
   const [indice, setIndice] = useState(state.indice);
+  // Nuevo estado para manejar la alerta
+  const [showAlert, setShowAlert] = useState(false);
   const [uiState, setUiState] = useState({
     pregunta: "",
     opcSelect: "",
@@ -268,6 +270,20 @@ export default function Cards() {
   };
 
   const siguiente = async () => {
+    // Validar que se haya seleccionado una opción
+    if (!uiState.opcSelect || uiState.opcSelect === "") {
+      console.log("No hay selección, mostrando alerta"); // Para debug
+      setShowAlert(true);
+      // Ocultar la alerta después de 3 segundos
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 3000);
+      return;
+    }
+
+    // Ocultar alerta si estaba visible
+    setShowAlert(false);
+
     const currentQuestion = questions[indice];
     const optionId = getSelectedOptionId();
 
@@ -278,18 +294,17 @@ export default function Cards() {
 
     // La última pregunta
     const isLastQuestion = indice === questions.length - 1 || indice === 5;
-
     if (isLastQuestion) {
       addRespuesta(uiState.opcSelect);
-      setUiState(prevState => ({
-        ...prevState,
-        hidSig: true,
-        calcular: false,
-        disAtras: false
-      }));
+
+      // Espera a que el estado se actualice antes de navegar
+      setTimeout(() => {
+        navigate("/results");
+      }, 100);
       return;
     }
 
+    // Solo agregar respuesta si NO es la última pregunta
     addRespuesta(uiState.opcSelect);
 
     const newIndice = indice + 1;
@@ -432,6 +447,16 @@ export default function Cards() {
         transition: 'all 0.5s ease-in-out'
       }}
     >
+      {/* Alerta de validación - con z-index más alto y posición fija */}
+      {showAlert && (
+        <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black/20">
+          <div className="bg-red-500/95 backdrop-blur-sm text-white px-8 py-6 rounded-xl shadow-2xl border-2 border-red-400 flex items-center gap-4 animate-bounce max-w-md mx-4">
+            <i className="fas fa-exclamation-triangle text-2xl text-yellow-300"></i>
+            <span className="font-bold text-lg">¡Por favor selecciona una opción antes de continuar!</span>
+          </div>
+        </div>
+      )}
+
       {/* User profile header with avatar */}
       <div className="flex items-center gap-4 mb-6 bg-black/30 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-white/20">
         <div className="h-12 w-12 rounded-full overflow-hidden shadow-md border-2 border-light-blue">
@@ -634,8 +659,11 @@ export default function Cards() {
             <button
               type="button"
               onClick={siguiente}
-              disabled={uiState.disSig}
-              className="bg-accent-blue text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-light-blue hover:text-deep-blue transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+              className={`px-6 py-3 rounded-lg font-bold shadow-lg transition-all duration-300 flex items-center gap-2 ${
+                uiState.disSig 
+                  ? "bg-gray-500 text-gray-300" // Visualmente parece deshabilitado pero funcionalmente no lo está
+                  : "bg-accent-blue text-white hover:bg-light-blue hover:text-deep-blue"
+              }`}
             >
               Siguiente<i className="fa-solid fa-arrow-right"></i>
             </button>

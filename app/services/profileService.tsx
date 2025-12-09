@@ -30,3 +30,18 @@ export const apiClient = {
     return response.json();
   }
 }
+
+const BASE = ''; // usando proxy, base vacío
+
+export const createUser = async (user: any) => {
+  const res = await fetch(`${BASE}/api/User`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(user),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`HTTP ${res.status} ${res.statusText} ${text}`);
+  }
+  return res.json();
+};

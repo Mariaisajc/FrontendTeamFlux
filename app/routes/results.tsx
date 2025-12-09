@@ -1,7 +1,7 @@
 import { LinksFunction } from "@remix-run/node";
 import { useNavigate } from "@remix-run/react";
-import { useEffect, useState, useRef } from "react"; // Importa useRef
-import { useDestino } from "~/services/destinationService";
+import { useEffect, useState, useRef } from "react";
+import { useDestino, findDestinationByAnswers, type Destination } from "~/services/destinationService";
 import { cityClient } from "~/services/cityService";
  
 export const links: LinksFunction = () => [
@@ -15,12 +15,61 @@ export const links: LinksFunction = () => [
   },
 ];
  
+// Función para mapear respuestas a IDs
+const mapearRespuestasAIds = (respuestas: string[]): number[] => {
+  const mapeo: { [key: string]: number } = {
+    // Entorno/Destino
+    'Playa': 1,
+    'Montaña': 2,
+    'Ciudad': 3,
+   
+    // Clima
+    'Caluroso': 4,
+    'Templado': 5,
+    'Frío': 6,
+   
+    // Actividad
+    'Deportes y Aventuras': 7,
+    'Cultura y Museos': 8,
+    'Relax y Bienestar': 9,
+   
+    // Alojamiento
+    'Hotel de Lujo': 10,
+    'Hostal o Albergue': 11,
+    'Airbnb': 12,
+   
+    // Duración
+    'Menos de una semana': 13,
+    '1-2 semanas': 14,
+    'Más de dos semanas': 15,
+   
+    // Edad
+    'Menos de 30 años': 16,
+    '30-50 años': 17,
+    'Más de 50 años': 18
+  };
+ 
+  const ids = respuestas.map(respuesta => {
+    const id = mapeo[respuesta.trim()];
+    console.log(`📝 Mapeando: "${respuesta}" → ${id}`);
+    return id;
+  }).filter(id => id !== undefined);
+ 
+  console.log('🔄 Mapeo completo:', {
+    respuestas: respuestas,
+    ids: ids
+  });
+ 
+  return ids;
+};
+ 
 export default function Results() {
   const navigate = useNavigate();
   const { state, updateIndice, updateDestinos, updateSrcImages } = useDestino();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref para almacenar el timeout
+  const [showingResults, setShowingResults] = useState(true);
+  const [countdown, setCountdown] = useState(10);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
  
   // Get responses from the service
   const pDestino = state.respuestasSer[0] || "";
@@ -31,259 +80,181 @@ export default function Results() {
   const edad = state.respuestasSer[5] || "";
  
   const volverAtras = () => {
+    // Limpiar timeouts
     if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current); // Cancela el timeout si existe
-      timeoutRef.current = null; // Limpia la referencia
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
  
-    // Reinicia el estado global para evitar redirecciones automáticas
+    // Limpiar localStorage
+    localStorage.removeItem('userAnswers');
+   
+    // Reinicia el estado global
     updateIndice(0);
-    updateDestinos("", ""); // Limpia los destinos seleccionados
-    updateSrcImages("", ""); // Limpia las imágenes seleccionadas
+    updateDestinos("", "");
+    updateSrcImages("", "");
  
     navigate("/cards");
   };
  
+  const irADestinos = async () => {
+    try {
+      console.log('🚀 === PROCESANDO RESPUESTAS PARA DESTINOS ===');
+     
+      // Convertir respuestas a IDs
+      const respuestas = [pDestino, pClimatica, pActividad, pAlojamiento, dViaje, edad];
+      console.log('📋 Respuestas originales:', respuestas);
+     
+      const userAnswers = mapearRespuestasAIds(respuestas);
+     
+      if (userAnswers.length !== 6) {
+        console.error('❌ Respuestas incompletas');
+        await usarDestinosPorDefecto();
+        navigate("/destination");
+        return;
+      }
+ 
+      // Guardar en localStorage
+      localStorage.setItem('userAnswers', JSON.stringify(userAnswers));
+      console.log('💾 Respuestas guardadas en localStorage:', userAnswers);
+     
+      try {
+        // Intentar buscar destino con hash
+        const result = await findDestinationByAnswers(userAnswers);
+        console.log('🎯 Destino encontrado con hash:', result);
+       
+        // Actualizar servicio con datos del resultado
+        if (result.firstCity && result.secondCity) {
+          updateDestinos(result.firstCity.description, result.secondCity.description);
+          updateSrcImages(result.firstCity.imagePath, result.secondCity.imagePath);
+        }
+       
+      } catch (err: any) {
+        console.error('❌ Error con hash, usando destinos por defecto:', err);
+        console.log('🏝️ Tus gustos son demasiado exóticos, usando destinos recomendados...');
+        await usarDestinosPorDefecto();
+      }
+     
+      // Navegar a destinos
+      navigate("/destination");
+     
+    } catch (error) {
+      console.error('❌ Error general:', error);
+      await usarDestinosPorDefecto();
+      navigate("/destination");
+    }
+  };
+ 
+  const usarDestinosPorDefecto = async () => {
+    try {
+      console.log('🏝️ === USANDO DESTINOS POR DEFECTO ===');
+      console.log('💬 Mensaje: Tus gustos son demasiado exóticos');
+     
+      // Intentar cargar desde la API
+      try {
+        const [boraBoraCity, dubaiCity] = await Promise.all([
+          cityClient.getCityByName("Bora Bora"),
+          cityClient.getCityByName("Dubai"),
+        ]);
+ 
+        updateDestinos(boraBoraCity.description, dubaiCity.description);
+        updateSrcImages(boraBoraCity.imagePath, dubaiCity.imagePath);
+        console.log('✅ Destinos por defecto cargados desde API');
+       
+      } catch (apiError) {
+        console.error('❌ Error cargando desde API, usando fallback final:', apiError);
+       
+        // Fallback final con datos hardcodeados
+        updateDestinos("Bora Bora", "Dubai");
+        updateSrcImages("/img/BoraBora.jpg", "/img/dubai.jpg");
+        console.log('✅ Destinos por defecto cargados (fallback)');
+      }
+     
+    } catch (err) {
+      console.error('❌ Error en destinos por defecto:', err);
+      // Fallback absoluto
+      updateDestinos("Destino Exótico", "Destino Urbano");
+      updateSrcImages("/img/default1.jpg", "/img/default2.jpg");
+    }
+  };
+ 
   useEffect(() => {
-    // Verifica si todas las respuestas están completas antes de llamar a enviarDestino
-    if (pDestino && pClimatica && pActividad && pAlojamiento && dViaje && edad) {
-      enviarDestino();
-    } else {
+    // Verificar que tenemos todas las respuestas
+    if (!pDestino || !pClimatica || !pActividad || !pAlojamiento || !dViaje || !edad) {
       console.warn("Missing some responses, redirecting back to cards");
       volverAtras();
+      return;
     }
  
+    console.log('✅ Todas las respuestas presentes, mostrando resultados');
+ 
+    // Configurar countdown
+    intervalRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+ 
+    // Auto-navegación después de 10 segundos
+    timeoutRef.current = setTimeout(() => {
+      irADestinos();
+    }, 10000);
+ 
     return () => {
-      // Limpia el timeout cuando el componente se desmonte
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
-        timeoutRef.current = null; // Limpia la referencia
+      }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
       }
     };
   }, [pDestino, pClimatica, pActividad, pAlojamiento, dViaje, edad]);
  
-  useEffect(() => {
-    // Verifica si todas las respuestas están completas antes de llamar a enviarDestino
-    if (pDestino && pClimatica && pActividad && pAlojamiento && dViaje && edad) {
-      enviarDestino();
-    } else {
-      console.warn("Missing some responses, redirecting back to cards");
-      volverAtras();
-    }
- 
-    return () => {
-      // Limpia el timeout cuando el componente se desmonte
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null; // Limpia la referencia
-      }
-    };
-  }, [pDestino, pClimatica, pActividad, pAlojamiento, dViaje, edad]); // Dependencias actualizadas
- 
-  // Function to determine destinations based on user preferences
-  const enviarDestino = async () => {
-    setIsLoading(true);
-    setError(null);
-   
-    let destinoA = "";
-    let destinoE = "";
- 
-    console.log("Raw preference values:", {
-      pDestino: `'${pDestino}'`,
-      pClimatica: `'${pClimatica}'`,
-      pActividad: `'${pActividad}'`,
-      pAlojamiento: `'${pAlojamiento}'`,
-      dViaje: `'${dViaje}'`,
-      edad: `'${edad}'`
-    });
- 
-    // Using only available cities from your database
-    switch(pDestino.trim()) {
-      case "Playa":
-        switch(pClimatica.trim()) {
-          case "Caluroso":
-            if (pActividad.trim() === "Deportes y Aventuras") {
-              destinoA = pAlojamiento.trim() === "Hotel" ? "Bora Bora" : "Tulum";
-              destinoE = pAlojamiento.trim() === "Hotel" ? "Santorini" : "Ibiza";
-            } else if (pActividad.trim() === "Cultura y Museos") {
-              destinoA = pAlojamiento.trim() === "Hotel" ? "Cartagena" : "Playa del Carmen";
-              destinoE = pAlojamiento.trim() === "Hotel" ? "Barcelona" : "Malta";
-            } else { // Relax y Bienestar or other activities
-              destinoA = pAlojamiento.trim() === "Hotel" ? "Honolulu" : "Tulum";
-              destinoE = pAlojamiento.trim() === "Hotel" ? "Santorini" : "Barcelona";
-            }
-            break;
-           
-          case "Templado":
-            destinoA = pAlojamiento.trim() === "Hotel" ? "Río de Janeiro" : "Playa del Carmen";
-            destinoE = pAlojamiento.trim() === "Hotel" ? "Lisboa" : "Barcelona";
-            break;
-           
-          // For "Frío" or other climates, default to available cities
-          default:
-            destinoA = "Cartagena";
-            destinoE = "Barcelona";
-            break;
-        }
-        break;
-       
-      case "Montaña":
-        // Since we don't have true mountain cities, use cultural cities that might be near mountains
-        switch(pClimatica.trim()) {
-          case "Caluroso":
-          case "Templado":
-            destinoA = "Cartagena";  // Best approximation for a warmer destination
-            destinoE = "Barcelona";   // Has mountains nearby (Montserrat)
-            break;
-           
-          case "Frío":
-          default:
-            destinoA = "Nueva York"; // Cold climate in winter
-            destinoE = "París";      // Colder option with nearby mountains (Alps accessible)
-            break;
-        }
-        break;
-       
-      case "Ciudad":
-        switch(pClimatica.trim()) {
-          case "Caluroso":
-            destinoA = pActividad.trim() === "Cultura y Museos" ? "Nueva York" : "Río de Janeiro";
-            destinoE = pActividad.trim() === "Cultura y Museos" ? "París" : "Barcelona";
-            break;
-           
-          case "Templado":
-            destinoA = pActividad.trim() === "Cultura y Museos" ? "Nueva York" : "Río de Janeiro";
-            destinoE = pActividad.trim() === "Cultura y Museos" ? "París" : "Lisboa";
-            break;
-           
-          case "Frío":
-          default:
-            destinoA = "Nueva York"; // Colder in winter
-            destinoE = "París";      // Colder in winter
-            break;
-        }
-        break;
-       
-      case "América":
-        // Map directly to American cities
-        if (pClimatica.trim() === "Caluroso") {
-          if (pActividad.trim() === "Playa") {
-            destinoA = pAlojamiento.trim() === "Hotel" ? "Honolulu" : "Tulum";
-          } else {
-            destinoA = pAlojamiento.trim() === "Hotel" ? "Bora Bora" : "Río de Janeiro";
-          }
-        } else {
-          destinoA = pActividad.trim() === "Cultura y Museos" ? "Nueva York" : "Cartagena";
-        }
-       
-        // Still need a European destination
-        destinoE = "Barcelona"; // Default European city
-        break;
-       
-      case "Europa":
-        // Map directly to European cities
-        if (pClimatica.trim() === "Caluroso") {
-          if (pActividad.trim() === "Playa") {
-            destinoE = pAlojamiento.trim() === "Hotel" ? "Barcelona" : "Santorini";
-          } else {
-            destinoE = pAlojamiento.trim() === "Hotel" ? "París" : "Ibiza";
-          }
-        } else {
-          destinoE = pActividad.trim() === "Cultura y Museos" ? "París" : "Lisboa";
-        }
-       
-        // Still need an American destination
-        destinoA = "Tulum"; // Default American city
-        break;
-       
-      default:
-        // Default destinations if no match or unrecognized preference
-        destinoA = "Tulum";
-        destinoE = "Santorini";
-        break;
-    }
- 
-    console.log("Selected destinations based on preferences:", destinoA, destinoE);
-   
-    try {
-      const [americaCity, europeCity] = await Promise.all([
-        cityClient.getCityByName(destinoA),
-        cityClient.getCityByName(destinoE),
-      ]);
- 
-      console.log("Fetched city data:", americaCity, europeCity);
- 
-      // Update destinations in service with data from API
-      updateDestinos(americaCity.description, europeCity.description);
- 
-      // Update image paths with the actual images from API
-      updateSrcImages(americaCity.imagePath, europeCity.imagePath);
- 
-      // Configura el timeout y almacena su referencia
-      timeoutRef.current = setTimeout(() => {
-        navigate("/destination");
-      }, 20000);
-    } catch (err: any) {
-      console.error("Error fetching city data:", err);
-      setError(`Error al obtener información de destinos: ${err.message}`);
- 
-      // Verifica si el componente sigue montado antes de configurar el timeout
-      if (timeoutRef.current !== null) {
-        timeoutRef.current = setTimeout(() => {
-          updateDestinos("Tulum", "Santorini");
-          navigate("/destination");
-        }, 10000);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
- 
-  // Array of preferences for easier rendering
+  // Array of preferences for rendering
   const preferences = [
-    { label: "Preferencia Destino", value: pDestino, icon: "fa-map-location-dot" },
-    { label: "Preferencia Climática", value: pClimatica, icon: "fa-sun" },
-    { label: "Preferencia Actividad", value: pActividad, icon: "fa-person-hiking" },
-    { label: "Preferencia Alojamiento", value: pAlojamiento, icon: "fa-hotel" },
-    { label: "Duración viaje", value: dViaje, icon: "fa-calendar-days" },
-    { label: "Edad", value: edad, icon: "fa-user-group" }
+    { label: "Preferencia Destino", value: pDestino, icon: "fa-map-location-dot", color: "bg-blue-500" },
+    { label: "Preferencia Climática", value: pClimatica, icon: "fa-sun", color: "bg-orange-500" },
+    { label: "Preferencia Actividad", value: pActividad, icon: "fa-person-hiking", color: "bg-green-500" },
+    { label: "Preferencia Alojamiento", value: pAlojamiento, icon: "fa-hotel", color: "bg-purple-500" },
+    { label: "Duración viaje", value: dViaje, icon: "fa-calendar-days", color: "bg-red-500" },
+    { label: "Edad", value: edad, icon: "fa-user-group", color: "bg-pink-500" }
   ];
  
   return (
     <main className="min-h-screen bg-gradient-to-b from-deep-blue to-deep-blue/90 py-8 px-4 md:px-8 font-sans">
-      {/* Show loading state */}
-      {isLoading && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-deep-blue/80">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent-blue mx-auto mb-4"></div>
-            <p className="text-white text-xl">Buscando tus destinos perfectos...</p>
-          </div>
-        </div>
-      )}
- 
-      {/* Show error message if any */}
-      {error && (
-        <div className="fixed top-4 right-4 bg-red-600/90 text-white p-4 rounded-lg shadow-lg z-50">
-          {error}
-        </div>
-      )}
- 
-      {/* Hero section with animated heading */}
+      {/* Hero section */}
       <div className="text-center mb-12">
         <h1 className="text-3xl md:text-4xl font-bold text-white mb-4 relative inline-block">
-          Tus Preferencias de Viaje
+          🎯 Tus Preferencias de Viaje
           <span className="block h-1 bg-accent-blue mt-2 w-0 group-hover:w-full transition-all duration-300 animate-[grow_1s_ease-out_forwards]"></span>
         </h1>
        
-        <p className="text-light-blue/90 max-w-2xl mx-auto">
-          Estas son las preferencias que seleccionaste para tu viaje. Estamos determinando
-          los mejores destinos para ti basándonos en esta información.
+        <p className="text-light-blue/90 max-w-2xl mx-auto mb-6">
+          Estas son las preferencias que seleccionaste. Estamos analizando tus respuestas para encontrar el destino perfecto.
         </p>
+ 
+        {/* Countdown */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 inline-block border border-white/20">
+          <p className="text-white flex items-center gap-2">
+            <i className="fas fa-clock text-accent-blue"></i>
+            Procesando en {countdown} segundos...
+          </p>
+        </div>
       </div>
  
-      {/* Main content container with right flying plane */}
-      <div className="max-w-4xl mx-auto relative mb-16">
-        {/* Flying plane animation on the right */}
+      {/* Main content container */}
+      <div className="max-w-6xl mx-auto relative mb-16">
+        {/* Flying plane animation */}
         <div className="absolute -top-12 -right-8 md:right-0 z-10 hidden md:block">
           <div className="relative w-24 h-24">
             <i className="fas fa-paper-plane text-accent-blue text-4xl absolute animate-custom-plane-flight"></i>
@@ -293,22 +264,22 @@ export default function Results() {
           </div>
         </div>
  
-        {/* Content box with glassmorphism effect */}
+        {/* Content box */}
         <div className="bg-white/5 backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg border border-white/10">
           {/* Preferences grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8">
             {preferences.map((pref, index) => (
               <div
                 key={index}
-                className="bg-white/5 p-4 rounded-xl backdrop-blur-sm border border-white/10 hover:border-accent-blue/50 hover:bg-white/10 transition-all duration-300"
+                className="bg-white/5 p-6 rounded-xl backdrop-blur-sm border border-white/10 hover:border-accent-blue/50 hover:bg-white/10 transition-all duration-300 transform hover:scale-105"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-accent-blue/20 flex items-center justify-center">
-                    <i className={`fas ${pref.icon} text-accent-blue`}></i>
+                  <div className={`w-14 h-14 rounded-full ${pref.color} flex items-center justify-center shadow-lg`}>
+                    <i className={`fas ${pref.icon} text-white text-xl`}></i>
                   </div>
-                  <div>
-                    <p className="text-light-blue/70 text-sm">{pref.label}</p>
-                    <p className="text-white font-medium">{pref.value}</p>
+                  <div className="flex-1">
+                    <p className="text-light-blue/70 text-sm font-medium">{pref.label}</p>
+                    <p className="text-white font-semibold text-lg">{pref.value}</p>
                   </div>
                 </div>
               </div>
@@ -316,19 +287,27 @@ export default function Results() {
           </div>
          
           {/* Action buttons */}
-          <div className="border-t border-white/10 p-6 flex justify-center">
+          <div className="border-t border-white/10 p-6 flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={irADestinos}
+              className="bg-accent-blue hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+            >
+              <i className="fas fa-plane mr-2"></i>
+              Ver destinos ahora
+            </button>
+           
             <button
               onClick={volverAtras}
-              className="bg-light-blue/20 hover:bg-light-blue/30 text-white px-6 py-3 rounded-lg font-medium transition-colors mr-4"
+              className="bg-light-blue/20 hover:bg-light-blue/30 text-white px-8 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
             >
               <i className="fas fa-arrow-left mr-2"></i>
-              Volver a responder
+              Cambiar respuestas
             </button>
           </div>
         </div>
       </div>
  
-      {/* Bottom decoration with globe and pins */}
+      {/* Bottom decoration */}
       <div className="text-center">
         <div className="inline-block relative">
           <i className="fas fa-globe-americas text-light-blue/40 text-6xl"></i>
@@ -336,9 +315,10 @@ export default function Results() {
           <i className="fas fa-map-pin text-yellow-500/80 text-lg absolute bottom-3 right-5 animate-bounce" style={{ animationDelay: '0.5s' }}></i>
         </div>
         <p className="text-white/50 mt-4">
-          Encontrando los mejores destinos para ti...
+          🔍 Analizando tus preferencias para encontrar el destino ideal...
         </p>
       </div>
     </main>
   );
 }
+ 

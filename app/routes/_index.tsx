@@ -60,10 +60,10 @@ export default function Index() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
-    <main className="flex flex-col min-h-screen bg-deep-blue">
-      {/* Carousel Section */}
-      <div className="w-full px-4 md:px-16 py-8 bg-deep-blue">
-        <div className="relative w-full h-64 sm:h-80 md:h-96 overflow-hidden rounded-lg shadow-2xl">
+    <main className="flex flex-col h-screen bg-deep-blue overflow-hidden">
+      {/* Carousel Section - Con más espacio abajo */}
+      <div className="w-full px-4 md:px-16 py-4 pb-8 bg-deep-blue">
+        <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden rounded-lg shadow-2xl">
           {/* Carousel images with transition */}
           {carouselImages.map((img, index) => (
             <div
@@ -86,7 +86,7 @@ export default function Index() {
             className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-accent-blue transition-all z-10 focus:outline-none focus:ring-2 focus:ring-accent-blue"
             aria-label="Previous slide"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
@@ -96,18 +96,18 @@ export default function Index() {
             className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-accent-blue transition-all z-10 focus:outline-none focus:ring-2 focus:ring-accent-blue"
             aria-label="Next slide"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
 
           {/* Indicator dots */}
-          <div className="absolute bottom-4 w-full flex justify-center gap-2">
+          <div className="absolute bottom-2 w-full flex justify-center gap-2">
             {carouselImages.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                className={`w-3 h-3 rounded-full transition-all ${index === currentIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/70'
+                className={`w-2 h-2 rounded-full transition-all ${index === currentIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/70'
                   }`}
                 aria-label={`Go to slide ${index + 1}`}
               ></button>
@@ -116,37 +116,40 @@ export default function Index() {
         </div>
       </div>
 
-      {/* Modern Card Section - Combined containers */}
-      <section className="w-full px-4 md:px-16 py-8 flex justify-center items-center">
+      {/* Botón flotante - Con espacios arriba y abajo */}
+      <div className="relative my-6 z-20 flex justify-center">
         <Link
           to="/profile"
-          className="w-full max-w-5xl relative rounded-xl overflow-hidden group transition-transform duration-300 hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-accent-blue"
+          className="inline-flex items-center gap-3 bg-gradient-to-r from-accent-blue to-light-blue hover:from-blue-600 hover:to-blue-400 text-white font-bold py-3 px-6 rounded-full shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 text-base animate-pulse hover:animate-none"
         >
+          <span>¡Haz click y prepárate para viajar!</span>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </Link>
+      </div>
+
+      {/* Content Section - Con espacio arriba */}
+      <section className="flex-1 w-full px-4 md:px-16 pt-6 pb-4 flex justify-center items-center">
+        <div className="w-full max-w-4xl relative rounded-xl overflow-hidden h-full">
           <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url(/img/tiera.png)" }}></div>
           <div className="absolute inset-0 bg-gradient-to-r from-deep-blue/90 to-deep-blue/70 backdrop-blur-xs"></div>
 
-          <div className="relative z-10 p-8 md:p-12 flex flex-col min-h-[60vh] justify-center items-center">
+          <div className="relative z-10 p-6 md:p-8 flex flex-col h-full justify-center items-center">
             <div className="max-w-2xl text-center">
-              <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-white drop-shadow-lg">
+              <h1 className="text-3xl md:text-4xl font-extrabold mb-4 text-white drop-shadow-lg">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-light-blue to-accent-blue">
                   Descubre tu destino ideal
                 </span>
               </h1>
 
-              <p className="text-white/90 text-lg md:text-xl mb-8 leading-relaxed">
+              <p className="text-white/90 text-base md:text-lg leading-relaxed">
                 ¿Estás cansado de pasar horas buscando el destino perfecto para tu próximo viaje?
                 ¿Te gustaría crear un viaje de acuerdo a tus preferencias y sin complicaciones?
               </p>
-
-              <div className="inline-block bg-accent-blue text-white font-bold px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 hover:shadow-accent-blue/50 hover:bg-light-blue hover:text-deep-blue group-hover:scale-105 animate-pulse hover:animate-none">
-                ¡Haz click y prepárate para viajar!
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </div>
             </div>
           </div>
-        </Link>
+        </div>
       </section>
     </main>
   );
