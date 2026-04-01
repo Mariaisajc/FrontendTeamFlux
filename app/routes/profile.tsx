@@ -3,6 +3,7 @@ import { useNavigate } from "@remix-run/react";
 import { LinksFunction } from "@remix-run/node";
 import { useDestino } from "~/services/destinationService";
 import { apiClient } from "~/services/profileService";
+import { Link } from "@remix-run/react";
 
 export const links: LinksFunction = () => [
   {
@@ -118,8 +119,9 @@ export default function Profile() {
       
       // Crear usuario en el backend
       const userData = {
-        full_name: nombre,
-        email: correo
+        name: nombre,
+        email: correo,
+        password: "123456" // O pide la contraseña al usuario
       };
       
       // Llamada a la API para crear el usuario
@@ -294,6 +296,16 @@ export default function Profile() {
           <i className="fas fa-plane text-accent-blue text-3xl transform -rotate-45"></i>
           <i className="fas fa-map-marker-alt text-accent-blue text-3xl animate-bounce"></i>
           <i className="fas fa-suitcase-rolling text-accent-blue text-3xl"></i>
+        </div>
+        
+        <div className="relative my-6 z-20 flex justify-center">
+          <Link
+            to="/profile"
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-accent-blue to-light-blue hover:from-blue-600 hover:to-blue-400 text-white font-bold py-3 px-6 rounded-full shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 text-base animate-pulse hover:animate-none"
+          >
+            ¡Haz click y prepárate para viajar!
+            <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </div>
     </div>
